@@ -92,7 +92,13 @@
       "prev.coverFront": "封面",
       "prev.coverBack": "封底",
       "prev.help": "这里是把纸送进打印机时的样子；「空白」是补足页数用的空白面。所有纸张叠在一起对折即可。",
-      "print.jacketNeed": "设置封面或封底后即可打印护封。"
+      "print.jacketNeed": "设置封面或封底后即可打印护封。",
+      "set.coverModePage": "① 首页当封面",
+      "set.coverModeCustom": "② 自定义护封",
+      "set.coverModeBlank": "③ 空白护封",
+      "set.coverModeHint": "① 不另打护封，正文第 1 页就是封面；② 封面/封底分别上传，印在单独护封纸上；③ 第 3 遍只打一张空白纸，包在外侧。",
+      "print.jacketPage": "封面方案是「首页当封面」：不需要第 3 遍护封。",
+      "print.blankJacket": "空白护封：第 3 遍会打一张空白纸，折好包在正文外即可。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -177,7 +183,13 @@
       "prev.coverFront": "封面",
       "prev.coverBack": "封底",
       "prev.help": "這是把紙送進印表機時的樣子；「空白」是補足頁數用的空白面。所有紙張疊在一起對折即可。",
-      "print.jacketNeed": "設定封面或封底後即可列印護封。"
+      "print.jacketNeed": "設定封面或封底後即可列印護封。",
+      "set.coverModePage": "① 首頁當封面",
+      "set.coverModeCustom": "② 自訂護封",
+      "set.coverModeBlank": "③ 空白護封",
+      "set.coverModeHint": "① 不另印護封，正文第 1 頁就是封面；② 封面/封底分開上傳，印在獨立護封紙上；③ 第 3 遍只印一張空白紙，包在外側。",
+      "print.jacketPage": "封面方案為「首頁當封面」：不需要第 3 遍護封。",
+      "print.blankJacket": "空白護封：第 3 遍會印一張空白紙，折好包在正文外即可。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -262,7 +274,13 @@
       "prev.coverFront": "表紙",
       "prev.coverBack": "裏表紙",
       "prev.help": "プリンターに給紙するときの向きです。「空白」はページ数を合わせるための空白面です。すべて重ねて二つ折りにします。",
-      "print.jacketNeed": "表紙または裏表紙を設定するとカバーを印刷できます。"
+      "print.jacketNeed": "表紙または裏表紙を設定するとカバーを印刷できます。",
+      "set.coverModePage": "① 1ページ目を表紙",
+      "set.coverModeCustom": "② カバーを別印刷",
+      "set.coverModeBlank": "③ 白紙カバー",
+      "set.coverModeHint": "① カバーは刷らず、本文1ページ目が表紙になります。② 表紙/裏表紙を別々に読み込み、カバー紙に印刷します。③ 3回目は白紙を1枚だけ印刷して外側に巻きます。",
+      "print.jacketPage": "カバーは「1ページ目を表紙」です。3回目のカバー印刷は不要です。",
+      "print.blankJacket": "白紙カバー：3回目で白紙を1枚印刷し、折って本文の外側に巻きます。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -347,7 +365,13 @@
       "prev.coverFront": "앞표지",
       "prev.coverBack": "뒷표지",
       "prev.help": "프린터에 종이를 넣는 방향 그대로입니다. \"빈칸\"은 페이지 수를 맞추기 위한 빈 면입니다. 모든 종이를 겹쳐 반으로 접으면 됩니다.",
-      "print.jacketNeed": "앞표지나 뒷표지를 설정하면 재킷을 인쇄할 수 있습니다."
+      "print.jacketNeed": "앞표지나 뒷표지를 설정하면 재킷을 인쇄할 수 있습니다.",
+      "set.coverModePage": "① 첫 페이지를 표지로",
+      "set.coverModeCustom": "② 별도 재킷",
+      "set.coverModeBlank": "③ 빈 재킷",
+      "set.coverModeHint": "① 재킷을 인쇄하지 않고 본문 1페이지가 표지가 됩니다. ② 앞/뒷표지를 따로 불러와 재킷 용지에 인쇄합니다. ③ 3번째에는 빈 종이 1장만 인쇄해 겉에 감쌉니다.",
+      "print.jacketPage": "표지 방식이 \"첫 페이지를 표지로\"입니다. 3번째 재킷은 필요 없습니다.",
+      "print.blankJacket": "빈 재킷: 3번째에서 빈 종이 1장을 인쇄해 접은 뒤 본문 겉에 감싸세요."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -432,7 +456,13 @@
       "prev.coverFront": "vorderes Cover",
       "prev.coverBack": "hinteres Cover",
       "prev.help": "So kommen die Blätter aus dem Drucker. „Leer“ sind leere Flächen zum Auffüllen der Seitenzahl. Alle Blätter übereinander falten.",
-      "print.jacketNeed": "Vorderes oder hinteres Cover hinzufügen, um Durchgang 3 zu aktivieren."
+      "print.jacketNeed": "Vorderes oder hinteres Cover hinzufügen, um Durchgang 3 zu aktivieren.",
+      "set.coverModePage": "① Seite 1 als Cover",
+      "set.coverModeCustom": "② Eigenes Umschlagblatt",
+      "set.coverModeBlank": "③ Leeres Umschlagblatt",
+      "set.coverModeHint": "① Kein Umschlag: Seite 1 des Dokuments ist das Cover. ② Vorderes/hinteres Cover separat wählen und auf das Umschlagblatt drucken. ③ Durchgang 3 druckt nur ein leeres Blatt zum Umlegen.",
+      "print.jacketPage": "Cover-Schema „Seite 1 als Cover“: Durchgang 3 ist nicht nötig.",
+      "print.blankJacket": "Leeres Umschlagblatt: Durchgang 3 druckt ein leeres Blatt, das um den Inhalt gelegt wird."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -517,7 +547,13 @@
       "prev.coverFront": "couverture avant",
       "prev.coverBack": "couverture arrière",
       "prev.help": "Voici les feuilles telles qu'elles sortent de l'imprimante ; « vide » = panneaux blancs pour compléter le nombre de pages. Pliez toute la pile ensemble.",
-      "print.jacketNeed": "Ajoutez une couverture avant ou arrière pour activer la 3e passe."
+      "print.jacketNeed": "Ajoutez une couverture avant ou arrière pour activer la 3e passe.",
+      "set.coverModePage": "① Page 1 en couverture",
+      "set.coverModeCustom": "② Jaquette séparée",
+      "set.coverModeBlank": "③ Jaquette blanche",
+      "set.coverModeHint": "① Pas de jaquette : la page 1 du document sert de couverture. ② Couvertures avant/arrière séparées, imprimées sur la feuille de jaquette. ③ La 3e passe imprime une feuille blanche à replier autour du contenu.",
+      "print.jacketPage": "Schéma « page 1 en couverture » : la 3e passe n'est pas nécessaire.",
+      "print.blankJacket": "Jaquette blanche : la 3e passe imprime une feuille blanche à replier autour du contenu."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -602,7 +638,13 @@
       "prev.coverFront": "front cover",
       "prev.coverBack": "back cover",
       "prev.help": "Sheets as they come out of the printer. “blank” = blank panels that pad the page count. Fold the whole stack together.",
-      "print.jacketNeed": "Add a front or back cover to enable the jacket pass."
+      "print.jacketNeed": "Add a front or back cover to enable the jacket pass.",
+      "set.coverModePage": "① Page 1 as cover",
+      "set.coverModeCustom": "② Separate jacket",
+      "set.coverModeBlank": "③ Blank jacket",
+      "set.coverModeHint": "① No jacket — page 1 of the document is the cover. ② Upload front/back covers separately and print them on the jacket sheet. ③ Pass 3 prints one blank sheet to fold around the content.",
+      "print.jacketPage": "Cover scheme “page 1 as cover”: pass 3 is not needed.",
+      "print.blankJacket": "Blank jacket: pass 3 prints one blank sheet to fold around the content."
     }
   }
 }

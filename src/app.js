@@ -185,6 +185,7 @@
       renderPlanBar();
       renderPreviews();
       renderSteps();
+      updateCoverModeUi();
       return;
     }
     state.cfg = C.sanitizeCfg(state.cfg, state.pageCount);
@@ -197,6 +198,7 @@
     renderVolChips();
     renderPreviews();
     renderSteps();
+    updateCoverModeUi();
     maybeThumbs();
   }
 
@@ -259,8 +261,23 @@
     return !!(state.covers.front.kind || state.covers.back.kind);
   }
 
+  function coverMode() {
+    return (state.cfg && state.cfg.coverMode) || 'page';
+  }
+
+  /* page: no jacket pass (page 1 is the cover); custom: uploaded front/back; blank: one empty jacket sheet. */
   function jacketSides() {
+    var mode = coverMode();
+    if (mode === 'page') return [];
+    if (mode === 'blank') return C.jacketSheet(false, false);
     return C.jacketSheet(!!state.covers.front.kind, !!state.covers.back.kind);
+  }
+
+  function jacketEnabled() {
+    var mode = coverMode();
+    if (mode === 'page') return false;
+    if (mode === 'blank') return true;
+    return hasAnyCover();
   }
 
   function paneHtml(side, pageNo) {
@@ -304,6 +321,7 @@
     var p = state.plan;
     return [state.pageCount, p.from, p.to, p.N, p.volumes.length, state.vol,
       state.cfg.mirror ? 1 : 0, state.cfg.reverse ? 1 : 0,
+      coverMode(),
       state.covers.front.kind + ':' + state.covers.front.name,
       state.covers.back.kind + ':' + state.covers.back.name,
       lang].join('|');
@@ -372,9 +390,40 @@
       state.previewSig = sig;
       fillSheetList($('prevFront'), jobs.front, false);
       fillSheetList($('prevBack'), jobs.back, false);
-      fillSheetList($('prevJacket'), jacket, true);
+      if (coverMode() === 'page') {
+        $('prevJacket').innerHTML = '<div class="hint">' + esc(t('print.jacketPage')) + '</div>';
+        state.previewJobs = { front: jobs.front, back: jobs.back, jacket: [] };
+      } else {
+        fillSheetList($('prevJacket'), jacket, true);
+      }
     }
     syncPreviewImages();
+  }
+
+  function updateCoverModeUi() {
+    var mode = coverMode();
+    var bar = $('coverModeBar');
+    if (bar) {
+      var btns = bar.querySelectorAll('.covmode');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.toggle('on', btns[i].getAttribute('data-cover') === mode);
+      }
+    }
+    var grid = $('coverGrid');
+    if (grid) grid.classList.toggle('hidden', mode !== 'custom');
+    var hint = $('coverHintCustom');
+    if (hint) hint.classList.toggle('hidden', mode !== 'custom');
+    var err = $('coverErr');
+    if (err && mode !== 'custom') err.classList.add('hidden');
+  }
+
+  function setCoverMode(mode) {
+    if (C.COVER_MODES.indexOf(mode) < 0) return;
+    state.cfg.coverMode = mode;
+    save(LS_CFG, state.cfg);
+    updateCoverModeUi();
+    renderPreviews(true);
+    renderSteps();
   }
 
   function renderVolChips() {
@@ -391,13 +440,12 @@
   function renderSteps() {
     var done = state.done[state.vol] || {};
     var vector = !(state.cfg && state.cfg.printMode === 'raster');
-    var hasCover = hasAnyCover();
     [['Front', 'front'], ['Back', 'back'], ['Jacket', 'jacket']].forEach(function (pair) {
       var step = $('step' + pair[0]);
       var btn = $('btn' + pair[0]);
-      var needCover = pair[1] === 'jacket';
+      var needJacket = pair[1] === 'jacket';
       step.classList.toggle('done', !!done[pair[1]]);
-      btn.disabled = !state.pdf || state.busy || (needCover && !hasCover);
+      btn.disabled = !state.pdf || state.busy || (needJacket && !jacketEnabled());
       btn.textContent = done[pair[1]] ? t('print.done') : (vector ? t('print.pdfBtn') : t('print.btn'));
     });
     var frontHelp = $('stepFront').querySelector('.step-s');
@@ -422,7 +470,14 @@
         : '';
     }
     var jh = $('jacketHint');
-    if (jh) jh.textContent = hasCover ? t('print.coverOn') : t('print.coverOff');
+    if (jh) {
+      var mode = coverMode();
+      jh.textContent = mode === 'page'
+        ? t('print.jacketPage')
+        : (mode === 'blank'
+          ? t('print.blankJacket')
+          : (hasAnyCover() ? t('print.coverOn') : t('print.coverOff')));
+    }
   }
 
   /* ---------------- pdf.js ---------------- */
@@ -1134,6 +1189,11 @@
     });
     $('coverFrontClear').addEventListener('click', function () { clearCoverSide('front'); });
     $('coverBackClear').addEventListener('click', function () { clearCoverSide('back'); });
+    $('coverModeBar').addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.covmode') : null;
+      if (!btn) return;
+      setCoverMode(btn.getAttribute('data-cover'));
+    });
 
     $('rangeAll').addEventListener('click', function () {
       if (!state.pageCount) return;
@@ -1302,6 +1362,7 @@
     applyI18n();
     updateCoverUi('front');
     updateCoverUi('back');
+    updateCoverModeUi();
     renderPlanBar();
     renderPreviews();
     renderSteps();

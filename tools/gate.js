@@ -63,7 +63,8 @@ has('"print.pdfFallback"');
 
 /* app hooks */
 ['id="fileInput"', 'id="coverFrontInput"', 'id="coverBackInput"', 'id="coverFrontClear"',
- 'id="coverBackClear"', 'id="coverFrontPrev"', 'id="coverBackPrev"', 'id="coverErr"',
+ 'id="coverBackClear"', 'id="coverFrontPrev"', 'id="coverBackPrev"', 'id="coverModeBar"',
+ 'id="coverGrid"', 'id="coverHintCustom"', 'id="coverErr"',
  'id="gutterRange"', 'id="gutterNum"', 'id="mirrorChk"',
  'id="reverseChk"', 'id="splitChk"', 'id="maxSheets"', 'id="rangeFrom"', 'id="rangeTo"',
  'id="btnFront"', 'id="btnBack"', 'id="btnJacket"', 'id="volChips"', 'id="prevFront"',
@@ -79,6 +80,11 @@ has('"prev.coverBack"');
 has('"prev.help"');
 has('"cover.errImage"');
 has('"print.jacketNeed"');
+has('"set.coverModePage"');
+has('"set.coverModeCustom"');
+has('"set.coverModeBlank"');
+has('"print.jacketPage"');
+has('"print.blankJacket"');
 ok(html.indexOf('sourceMappingURL') < 0, 'no sourcemap directives');
 ok(html.indexOf('printBlobUrl') >= 0, 'vector print uses hidden iframe (no new tab)');
 

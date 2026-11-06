@@ -82,7 +82,13 @@
         </div>
         <div class="field wide">
           <label data-i18n="set.cover">Covers (optional)</label>
-          <div class="cover-grid">
+          <div id="coverModeBar" class="modebar covmodes">
+            <button type="button" class="modebtn covmode" data-cover="page" data-i18n="set.coverModePage"></button>
+            <button type="button" class="modebtn covmode" data-cover="custom" data-i18n="set.coverModeCustom"></button>
+            <button type="button" class="modebtn covmode" data-cover="blank" data-i18n="set.coverModeBlank"></button>
+          </div>
+          <div class="hint" data-i18n="set.coverModeHint"></div>
+          <div id="coverGrid" class="cover-grid hidden">
             <div class="cover-slot">
               <div class="cover-thumb" id="coverFrontPrev"><span data-i18n="set.coverNone">not set</span></div>
               <div class="cover-body">
@@ -109,7 +115,7 @@
             </div>
           </div>
           <div id="coverErr" class="err hidden"></div>
-          <div class="hint" data-i18n="set.coverHint"></div>
+          <div id="coverHintCustom" class="hint hidden" data-i18n="set.coverHint"></div>
         </div>
       </div>
       <div id="planBar" class="planbar"></div>

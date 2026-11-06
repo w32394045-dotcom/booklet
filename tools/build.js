@@ -97,6 +97,7 @@ if (pdflib.indexOf('PDFLib') < 0) fail('pdf-lib global missing');
  ['id="btnFront"', body], ['id="btnBack"', body], ['id="btnJacket"', body], ['id="gutterRange"', body],
  ['id="coverFrontInput"', body], ['id="coverBackInput"', body], ['id="coverFrontClear"', body],
  ['id="coverBackClear"', body], ['id="coverFrontPrev"', body], ['id="coverBackPrev"', body],
+ ['id="coverModeBar"', body], ['id="coverGrid"', body], ['id="coverHintCustom"', body],
  ['id="coverErr"', body], ['id="prevFront"', body], ['id="prevBack"', body], ['id="prevJacket"', body],
  ['id="jacketPane"', body], ['id="langSel"', body], ['id="statText"', body]].forEach(([needle, s]) => {
   if (s.indexOf(needle) < 0) fail('missing ' + needle);

@@ -211,12 +211,20 @@ async function setFile(selector, filePath) {
     eq(sf.map((s) => [s.left, s.right]), [[null, 3], [8, 5]], 'subset front pages');
     eq(sb.map((s) => [s.left, s.right]), [[4, null], [6, 7]], 'subset back pages');
 
-    /* ---------- 8. covers: separate front/back image uploads + jacket ---------- */
-    const noCover = await evj('JSON.stringify({disabled:document.getElementById("btnJacket").disabled,imgs:document.querySelectorAll("#prevJacket img[src]").length,hasCover:window.booklet.getState().hasCover})');
-    eq(noCover.disabled, true, 'jacket pass disabled without covers');
-    eq(noCover.hasCover, false, 'no cover initially');
-    eq(noCover.imgs, 0, 'empty jacket preview');
+    /* ---------- 8. cover schemes: page / custom / blank ---------- */
+    await ev('window.booklet.setConfig({coverMode:"page"})', true);
+    const cMode = await evj('JSON.stringify({mode:window.booklet.getState().cfg.coverMode,disabled:document.getElementById("btnJacket").disabled,gridHidden:document.getElementById("coverGrid").classList.contains("hidden"),jobs:window.booklet.getJobs("jacket"),hint:document.getElementById("jacketHint").textContent.length>0,paneHint:document.querySelectorAll("#prevJacket .hint").length})');
+    eq(cMode.mode, 'page', 'default cover scheme = page 1 as cover');
+    eq(cMode.disabled, true, 'jacket pass disabled in page mode');
+    ok(cMode.gridHidden, 'cover uploads hidden in page mode');
+    eq(cMode.jobs.length, 0, 'no jacket sheet in page mode');
+    ok(cMode.hint, 'page-mode jacket hint shown');
+    eq(cMode.paneHint, 1, 'jacket preview explains page mode');
 
+    /* scheme 2: custom front/back covers */
+    await ev('document.querySelector(\'#coverModeBar [data-cover="custom"]\').click()');
+    ok(await waitFor('window.booklet.getState().cfg.coverMode==="custom"', 10000), 'cover scheme switched to custom');
+    ok(!(await ev('document.getElementById("coverGrid").classList.contains("hidden")')), 'cover uploads visible in custom mode');
     await setFile('#coverFrontInput', path.join(dir, 'fixtures', 'cover-front.png'));
     ok(await waitFor('window.booklet.getState().covers.front.kind==="image"', 20000), 'front cover accepts a PNG image');
     await setFile('#coverBackInput', path.join(dir, 'fixtures', 'cover-back.png'));
@@ -248,13 +256,33 @@ async function setFile(selector, filePath) {
     await ev('window.booklet.loadCoverBase64(' + JSON.stringify(coverB64) + ',"cover.pdf","front")', true);
     eq(await ev('window.booklet.getState().covers.front.kind'), 'pdf', 'front cover can still be a PDF');
 
+    /* scheme 3: blank jacket sheet */
+    await ev('document.querySelector(\'#coverModeBar [data-cover="blank"]\').click()');
+    ok(await waitFor('window.booklet.getState().cfg.coverMode==="blank"', 10000), 'cover scheme switched to blank');
+    const blank = await evj('JSON.stringify({disabled:document.getElementById("btnJacket").disabled,jobs:window.booklet.getJobs("jacket"),gridHidden:document.getElementById("coverGrid").classList.contains("hidden")})');
+    eq(blank.disabled, false, 'blank jacket pass enabled');
+    eq(blank.jobs, [{ k: 1, left: null, right: null }], 'blank jacket sheet layout');
+    ok(blank.gridHidden, 'cover uploads hidden in blank mode');
+    const bjd = await evj('window.booklet.buildPrintDom("jacket").then(function(){return JSON.stringify({sheets:document.querySelectorAll("#printRoot .print-sheet").length,imgs:document.querySelectorAll("#printRoot img").length})})');
+    eq([bjd.sheets, bjd.imgs], [1, 0], 'blank jacket raster sheet');
+    const bjv = await evj('window.booklet.buildVectorPdf("jacket").then(JSON.stringify)');
+    eq(bjv.pages, 1, 'blank jacket vector page');
+    await ev('window.booklet.cleanupPrint()');
+
+    /* scheme 1 again, then restore custom for the vector tests below */
+    await ev('document.querySelector(\'#coverModeBar [data-cover="page"]\').click()');
+    eq(await ev('window.booklet.getState().cfg.coverMode'), 'page', 'switched back to page mode');
+    eq(await ev('document.getElementById("btnJacket").disabled'), true, 'page mode disables jacket again');
+    await ev('document.querySelector(\'#coverModeBar [data-cover="custom"]\').click()');
+    eq(await ev('window.booklet.getState().cfg.coverMode'), 'custom', 'custom mode restored for jacket tests');
+
 
     /* ---------- 8b. vector PDF mode + fallback ---------- */
     const vecB64 = fs.readFileSync(path.join(dir, 'fixtures', 'vector8.pdf')).toString('base64');
     const rotB64 = fs.readFileSync(path.join(dir, 'fixtures', 'rotated.pdf')).toString('base64');
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);
-    const vst = await evj('JSON.stringify({mode:window.booklet.getState().cfg.printMode,dpiHidden:document.getElementById("dpiField").classList.contains("hidden"),on:document.querySelector(".modebtn.on").getAttribute("data-mode"),btn:document.getElementById("btnFront").textContent})');
+    const vst = await evj('JSON.stringify({mode:window.booklet.getState().cfg.printMode,dpiHidden:document.getElementById("dpiField").classList.contains("hidden"),on:document.querySelector("#modeBar .modebtn.on").getAttribute("data-mode"),btn:document.getElementById("btnFront").textContent})');
     eq(vst.mode, 'vector', 'vector mode active');
     eq(vst.on, 'vector', 'mode button active');
     ok(vst.dpiHidden, 'dpi field hidden in vector mode');

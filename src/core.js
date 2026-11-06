@@ -19,8 +19,11 @@
     maxSheets: 20,
     rangeFrom: 1,
     rangeTo: 0,
-    printMode: 'vector'
+    printMode: 'vector',
+    coverMode: 'page'
   };
+
+  var COVER_MODES = ['page', 'custom', 'blank'];
 
   var DPI_LIST = [200, 300, 400];
 
@@ -56,7 +59,8 @@
       maxSheets: clamp(intOr(src.maxSheets, DEFAULTS.maxSheets), 4, 50),
       rangeFrom: Math.max(1, intOr(src.rangeFrom, 1)),
       rangeTo: Math.max(0, intOr(src.rangeTo, 0)),
-      printMode: src.printMode === 'raster' ? 'raster' : DEFAULTS.printMode
+      printMode: src.printMode === 'raster' ? 'raster' : DEFAULTS.printMode,
+      coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode
     };
     if (pageCount > 0) {
       cfg.rangeFrom = clamp(cfg.rangeFrom, 1, pageCount);
@@ -209,6 +213,7 @@
     PAPER: PAPER,
     DEFAULTS: DEFAULTS,
     DPI_LIST: DPI_LIST,
+    COVER_MODES: COVER_MODES,
     num: num,
     clamp: clamp,
     sanitizeCfg: sanitizeCfg,

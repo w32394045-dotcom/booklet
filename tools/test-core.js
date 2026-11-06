@@ -35,6 +35,10 @@ eq(d.rangeTo, 0, 'default rangeTo');
 eq(d.printMode, 'vector', 'default printMode');
 eq(C.sanitizeCfg({ printMode: 'raster' }, 0).printMode, 'raster', 'printMode raster');
 eq(C.sanitizeCfg({ printMode: 'weird' }, 0).printMode, 'vector', 'printMode fallback');
+eq(C.sanitizeCfg(null, 0).coverMode, 'page', 'default coverMode page');
+eq(C.sanitizeCfg({ coverMode: 'custom' }, 0).coverMode, 'custom', 'coverMode custom');
+eq(C.sanitizeCfg({ coverMode: 'blank' }, 0).coverMode, 'blank', 'coverMode blank');
+eq(C.sanitizeCfg({ coverMode: 'weird' }, 0).coverMode, 'page', 'coverMode fallback');
 
 const s1 = C.sanitizeCfg({ gutter: 99, dpi: 123, maxSheets: 2, paper: 'X9' }, 0);
 eq(s1.gutter, 30, 'gutter clamp high');
