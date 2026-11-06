@@ -33,6 +33,9 @@ has("script-src 'self' 'unsafe-inline' blob:");
 has('worker-src blob:');
 has('img-src');
 has("connect-src 'none'");
+/* the vector print path frames the generated PDF blob, so the CSP must allow it */
+has("frame-src blob:");
+ok(html.indexOf('frame-src') >= 0 && /frame-src[^;"]*blob:/.test(html), 'csp allows blob frames for print');
 
 /* pdf.js inlined */
 ok(html.indexOf('pdfjsLib') >= 0, 'pdf.js global present');

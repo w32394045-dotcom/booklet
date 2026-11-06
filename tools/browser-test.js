@@ -4,12 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { pathToFileURL } = require('url');
+
 /* Node < 22 has no global WebSocket: shim it for the CDP client. */
 if (typeof WebSocket === 'undefined') {
   try { globalThis.WebSocket = require('ws'); }
   catch (e) { console.error('Node < 22 needs the ws package: npm install --no-save ws@8'); process.exit(1); }
 }
-
 
 const dir = path.resolve(__dirname, '..');
 const CHROME = process.env.CHROME || (process.platform === 'win32'
@@ -36,6 +36,7 @@ const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--no-sandbox',
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let ws, msgId = 0;
 const pending = new Map();
+const pageLogs = [];
 function send(method, params) {
   return new Promise((resolve, reject) => {
     const id = ++msgId;
@@ -89,10 +90,17 @@ async function setFile(selector, filePath) {
         const p = pending.get(m.id);
         pending.delete(m.id);
         m.error ? p.reject(new Error(m.error.message)) : p.resolve(m.result);
+        return;
+      }
+      if (m.method === 'Log.entryAdded') pageLogs.push({ level: m.params.entry.level, text: m.params.entry.text || '' });
+      if (m.method === 'Runtime.exceptionThrown') pageLogs.push({ level: 'exception', text: JSON.stringify(m.params.exceptionDetails).slice(0, 300) });
+      if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') {
+        pageLogs.push({ level: 'console', text: (m.params.args || []).map((a) => a.value || a.description || '').join(' ').slice(0, 300) });
       }
     };
     await send('Page.enable');
     await send('Runtime.enable');
+    await send('Log.enable');
     await send('DOM.enable');
     await send('Page.navigate', { url });
     ok(await waitFor('!!window.booklet && !!window.pdfjsLib', 20000), 'app boots with pdf.js');
@@ -270,21 +278,27 @@ async function setFile(selector, filePath) {
     eq(rdom.sheets, 2, 'raster mode still works');
     await ev('window.booklet.cleanupPrint()');
 
-    /* ---------- 8c. vector print: hidden iframe, no popup window ---------- */
+    /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);
     await waitFor('document.querySelectorAll("#prevFront img[src]").length>=4', 40000);
-    await ev(`window.__opens=0;window.__frames=[];window.__open0=window.open;window.open=function(){window.__opens++;return null;};
-      new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.tagName==='IFRAME'&&n.getAttribute('title')==='booklet-print')window.__frames.push(n.src||'');});});}).observe(document.body,{childList:true});
+    const csp = await ev('document.querySelector(\'meta[http-equiv="Content-Security-Policy"]\').content');
+    ok(csp.indexOf('frame-src blob:') >= 0, 'CSP allows blob frames (print path)', csp.slice(0, 80));
+    await ev(`window.__opens=0;window.__frames=[];window.__frameLoads=0;window.__open0=window.open;window.open=function(){window.__opens++;return null;};
+      new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.tagName==='IFRAME'&&n.getAttribute('title')==='booklet-print'){window.__frames.push(n.src||'');n.addEventListener('load',function(){window.__frameLoads++;});}});});}).observe(document.body,{childList:true});
       document.getElementById("pdfLinks").innerHTML='';`);
     await ev('document.getElementById("btnFront").click()');
     ok(await waitFor('window.__frames.length>0', 30000), 'vector print creates the hidden print iframe');
-    await sleep(1200);
-    const dp = await evj('JSON.stringify({opens:window.__opens,frames:window.__frames,framesLeft:document.querySelectorAll("iframe[title=booklet-print]").length,links:document.querySelectorAll("#pdfLinks a").length,href:(document.querySelector("#pdfLinks a")||{}).href||""})');
+    ok(await waitFor('window.__frameLoads>=1', 20000), 'print iframe loads the generated PDF (not CSP-blocked)');
+    await sleep(600);
+    const dp = await evj('JSON.stringify({opens:window.__opens,frames:window.__frames,frameLoads:window.__frameLoads,links:document.querySelectorAll("#pdfLinks a").length,href:(document.querySelector("#pdfLinks a")||{}).href||"",err:document.getElementById("fileErr").classList.contains("hidden")?"":document.getElementById("fileErr").textContent})');
     eq(dp.opens, 0, 'vector print never opens a popup window');
     eq(dp.frames.length, 1, 'exactly one hidden print iframe');
+    eq(dp.frames[0].indexOf('blob:'), 0, 'print iframe points at the generated PDF blob');
     ok(dp.links >= 2, 'PDF open/download links kept as fallback', dp.links);
     eq(dp.href.indexOf('blob:'), 0, 'fallback link points at the generated PDF');
+    const cspErrors = pageLogs.filter((l) => /Content Security Policy|violates the following|Framing .* violates|refused to frame/i.test(l.text || ''));
+    eq(cspErrors.length, 0, 'no CSP violations in the print path', JSON.stringify(cspErrors.slice(0, 2)));
     ok(await waitFor('document.querySelectorAll("iframe[title=booklet-print]").length===0', 12000), 'print iframe cleaned up afterwards');
     await ev('window.open=window.__open0;');
 
