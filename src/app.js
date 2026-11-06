@@ -1023,9 +1023,10 @@
         if (onError) onError(e);
       }
     }
-    frame.addEventListener('load', trigger);
+    /* Give the PDF viewer a moment after its load event before printing. */
+    frame.addEventListener('load', function () { setTimeout(trigger, 250); });
     document.body.appendChild(frame);
-    retryTimer = setTimeout(trigger, 1500);
+    retryTimer = setTimeout(trigger, 6000);
     frame.src = url;
   }
 
