@@ -4,6 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { pathToFileURL } = require('url');
+/* Node < 22 has no global WebSocket: shim it for the CDP client. */
+if (typeof WebSocket === 'undefined') {
+  try { globalThis.WebSocket = require('ws'); }
+  catch (e) { console.error('Node < 22 needs the ws package: npm install --no-save ws@8'); process.exit(1); }
+}
+
 
 const dir = path.resolve(__dirname, '..');
 const CHROME = process.env.CHROME || (process.platform === 'win32'
