@@ -1,0 +1,190 @@
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3.5h9l5 5V21H5z"/><path d="M14 3.5V9h5"/><path d="M8 13h8M8 16.5h8"/></svg></span>
+      <div>
+        <h1 data-i18n="app.title">Booklet Printer</h1>
+        <p data-i18n="app.sub">PDF to saddle-stitch booklet</p>
+      </div>
+    </div>
+    <select id="langSel" class="lang" aria-label="language"></select>
+  </header>
+
+  <main>
+    <section class="card" id="cardFile">
+      <div class="card-head">
+        <h2 data-i18n="file.title">Load PDF</h2>
+        <span class="hint" data-i18n="file.hint">processed locally</span>
+      </div>
+      <label class="drop" id="drop" for="fileInput">
+        <svg class="drop-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3.5h16V16"/></svg>
+        <span class="drop-main" data-i18n="file.drop">Drop a PDF here</span>
+        <span class="drop-sub" data-i18n="file.sub">any PDF, only selected pages are used</span>
+        <span id="fileChip" class="hidden"><span id="fileName"></span><span id="fileMeta"></span></span>
+        <input id="fileInput" type="file" accept="application/pdf,.pdf" hidden>
+      </label>
+      <div id="fileErr" class="err hidden"></div>
+    </section>
+
+    <section class="card" id="cardSet">
+      <div class="card-head"><h2 data-i18n="set.title">Layout</h2></div>
+      <div class="grid">
+        <div class="field">
+          <label data-i18n="set.range">Page range</label>
+          <div class="range">
+            <input id="rangeFrom" type="number" min="1" value="1" aria-label="from">
+            <span class="dash">-</span>
+            <input id="rangeTo" type="number" min="1" value="1" aria-label="to">
+            <button id="rangeAll" class="mini" type="button" data-i18n="set.rangeAll">All</button>
+          </div>
+          <div id="rangeInfo" class="hint"></div>
+        </div>
+        <div class="field">
+          <label data-i18n="set.paper">Paper</label>
+          <select id="paperSel">
+            <option value="A4">A4 -> A5</option>
+            <option value="A3">A3 -> A4</option>
+            <option value="Letter">Letter -> Half Letter</option>
+          </select>
+        </div>
+        <div class="field" id="dpiField">
+          <label data-i18n="set.dpi">Render quality</label>
+          <select id="dpiSel">
+            <option value="200">200 DPI</option>
+            <option value="300" selected>300 DPI</option>
+            <option value="400">400 DPI</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="set.gutter">Center gutter</label>
+          <div class="slider-row">
+            <input id="gutterRange" type="range" min="0" max="30" step="0.5" value="6" aria-label="gutter">
+            <input id="gutterNum" type="number" min="0" max="30" step="0.5" value="6" aria-label="gutter mm">
+            <span class="unit" data-i18n="set.unit">mm</span>
+          </div>
+          <div class="hint" data-i18n="set.gutterHint"></div>
+        </div>
+        <div class="field">
+          <label data-i18n="set.flip">Duplex flip</label>
+          <div class="check-row">
+            <label class="check"><input id="mirrorChk" type="checkbox"> <span data-i18n="set.mirror"></span></label>
+            <label class="check"><input id="reverseChk" type="checkbox"> <span data-i18n="set.reverse"></span></label>
+          </div>
+          <div class="hint" data-i18n="set.flipHint"></div>
+        </div>
+        <div class="field">
+          <label data-i18n="set.split">Auto split</label>
+          <div class="check-row">
+            <label class="check"><input id="splitChk" type="checkbox" checked> <span data-i18n="set.splitOn"></span></label>
+            <input id="maxSheets" type="number" min="4" max="50" value="20" class="num">
+            <span class="hint" data-i18n="set.maxSheets"></span>
+          </div>
+        </div>
+        <div class="field wide">
+          <label data-i18n="set.cover">Covers (optional)</label>
+          <div class="cover-grid">
+            <div class="cover-slot">
+              <div class="cover-thumb" id="coverFrontPrev"><span data-i18n="set.coverNone">not set</span></div>
+              <div class="cover-body">
+                <div class="cover-title" data-i18n="set.coverFront">Front cover</div>
+                <input id="coverFrontInput" type="file" accept="image/*,.pdf,application/pdf" hidden>
+                <div class="cover-actions">
+                  <label class="mini" for="coverFrontInput" data-i18n="set.coverPick">Image or PDF</label>
+                  <button id="coverFrontClear" class="link hidden" type="button" data-i18n="set.coverClear">Remove</button>
+                </div>
+                <div class="hint" id="coverFrontMeta"></div>
+              </div>
+            </div>
+            <div class="cover-slot">
+              <div class="cover-thumb" id="coverBackPrev"><span data-i18n="set.coverNone">not set</span></div>
+              <div class="cover-body">
+                <div class="cover-title" data-i18n="set.coverBack">Back cover</div>
+                <input id="coverBackInput" type="file" accept="image/*,.pdf,application/pdf" hidden>
+                <div class="cover-actions">
+                  <label class="mini" for="coverBackInput" data-i18n="set.coverPick">Image or PDF</label>
+                  <button id="coverBackClear" class="link hidden" type="button" data-i18n="set.coverClear">Remove</button>
+                </div>
+                <div class="hint" id="coverBackMeta"></div>
+              </div>
+            </div>
+          </div>
+          <div id="coverErr" class="err hidden"></div>
+          <div class="hint" data-i18n="set.coverHint"></div>
+        </div>
+      </div>
+      <div id="planBar" class="planbar"></div>
+    </section>
+
+    <section class="card" id="cardPrev">
+      <div class="card-head">
+        <h2 data-i18n="prev.title">Sheet preview</h2>
+        <div id="volChips" class="chips"></div>
+      </div>
+      <div class="hint prev-help" data-i18n="prev.help"></div>
+      <div class="prev-pane">
+        <h3 data-i18n="prev.front">Front pass</h3>
+        <div id="prevFront" class="sheets"></div>
+      </div>
+      <div class="prev-pane">
+        <h3 data-i18n="prev.back">Back pass</h3>
+        <div id="prevBack" class="sheets"></div>
+      </div>
+      <div id="jacketPane" class="prev-pane hidden">
+        <h3 data-i18n="prev.jacket">Cover pass</h3>
+        <div id="prevJacket" class="sheets"></div>
+      </div>
+    </section>
+
+    <section class="card" id="cardPrint">
+      <div class="card-head">
+        <h2 data-i18n="print.title">Print</h2>
+        <div class="head-right">
+          <div id="modeBar" class="modebar">
+            <span class="hint" data-i18n="print.mode">Mode</span>
+            <button type="button" class="modebtn" data-mode="vector" data-i18n="print.modeVector"></button>
+            <button type="button" class="modebtn" data-mode="raster" data-i18n="print.modeRaster"></button>
+          </div>
+          <div id="volHint" class="hint"></div>
+        </div>
+      </div>
+      <ol class="steps">
+        <li class="step" id="stepFront">
+          <div class="step-main"><span class="step-n">1</span><div><div class="step-t" data-i18n="print.step1"></div><div class="step-s" data-i18n="print.step1s"></div></div></div>
+          <button id="btnFront" class="primary" type="button" data-i18n="print.btn"></button>
+        </li>
+        <li class="step" id="stepBack">
+          <div class="step-main"><span class="step-n">2</span><div><div class="step-t" data-i18n="print.step2"></div><div class="step-s" data-i18n="print.step2s"></div></div></div>
+          <button id="btnBack" class="primary" type="button" data-i18n="print.btn"></button>
+        </li>
+        <li class="step" id="stepJacket">
+          <div class="step-main"><span class="step-n">3</span><div><div class="step-t" data-i18n="print.step3"></div><div class="step-s" data-i18n="print.step3s"></div></div></div>
+          <button id="btnJacket" class="primary" type="button" data-i18n="print.btn"></button>
+        </li>
+      </ol>
+      <div id="pdfLinks" class="pdflinks hidden"></div>
+      <div class="tip2" id="modeHint" data-i18n="print.modeHint"></div>
+      <div class="tip"><strong data-i18n="print.tipTitle"></strong><span data-i18n="print.tip"></span></div>
+      <div class="tip2" data-i18n="print.tip2"></div>
+      <div class="tip2" id="jacketHint" data-i18n="print.jacketHint"></div>
+    </section>
+
+    <footer class="foot">
+      <div class="promo">
+        <span data-i18n="promo.title"></span>
+        <a href="https://md2pdf.xszx.cc.cd/" target="_blank" rel="noopener">md2pdf</a>
+        <a href="https://imgprint.xszx.cc.cd/" target="_blank" rel="noopener">imgprint</a>
+        <a href="https://github.com/w32394045-dotcom/md2pdf" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="stats">
+        <span id="statText"></span>
+        <button id="statReset" class="link" type="button" data-i18n="counter.reset">reset</button>
+      </div>
+      <div class="fine" data-i18n="promo.fine"></div>
+    </footer>
+  </main>
+</div>
+<div id="printRoot"></div>
+<div id="busy" class="busy hidden"><div class="busy-box"><div class="spin"></div><div id="busyText"></div></div></div>
+<style id="pageStyle"></style>
+</body>
+</html>

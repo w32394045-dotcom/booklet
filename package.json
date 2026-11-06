@@ -1,0 +1,13 @@
+{
+  "name": "booklet",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Saddle-stitch booklet printer: single-file offline PDF imposition",
+  "scripts": {
+    "build": "node tools/build.js",
+    "test": "node tools/test-core.js && node tools/gate.js",
+    "test:browser": "node tools/browser-test.js",
+    "worker": "node tools/build_worker.js"
+  },
+  "license": "MIT"
+}
