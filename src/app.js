@@ -30,7 +30,7 @@
     thumbError: '',
     previewSig: '',
     previewJobs: null,
-    safeLast: 4,
+    marginLast: { t: 4, r: 4, b: 4, l: 4 },
     quality: null,
     busy: false,
     printing: false,
@@ -139,11 +139,20 @@
   /* ---------------- config inputs ---------------- */
 
   function cfgFromInputs() {
+    var on = $('safeChk').checked;
+    var mT = on ? parseFloat($('mTop').value) : 0;
+    var mR = on ? parseFloat($('mRight').value) : 0;
+    var mB = on ? parseFloat($('mBottom').value) : 0;
+    var mL = on ? parseFloat($('mLeft').value) : 0;
     return C.sanitizeCfg({
       paper: $('paperSel').value,
       dpi: +$('dpiSel').value,
       gutter: parseFloat($('gutterNum').value),
-      safe: $('safeChk').checked ? parseFloat($('safeNum').value) : 0,
+      safe: on ? Math.max(mT, mR, mB, mL) : 0,
+      mTop: mT,
+      mRight: mR,
+      mBottom: mB,
+      mLeft: mL,
       mirror: $('mirrorChk').checked,
       reverse: $('reverseChk').checked,
       autoSplit: $('splitChk').checked,
@@ -158,11 +167,15 @@
     $('dpiSel').value = String(cfg.dpi);
     $('gutterRange').value = String(cfg.gutter);
     $('gutterNum').value = String(cfg.gutter);
-    var safeOn = cfg.safe > 0;
-    if (safeOn) state.safeLast = cfg.safe;
+    var m = { t: cfg.mTop, r: cfg.mRight, b: cfg.mBottom, l: cfg.mLeft };
+    var safeOn = !!(m.t || m.r || m.b || m.l);
+    if (safeOn) state.marginLast = m;
     $('safeChk').checked = safeOn;
-    $('safeNum').value = String(safeOn ? cfg.safe : (state.safeLast || 4));
-    $('safeNum').disabled = !safeOn;
+    $('mTop').value = String(safeOn ? m.t : state.marginLast.t);
+    $('mRight').value = String(safeOn ? m.r : state.marginLast.r);
+    $('mBottom').value = String(safeOn ? m.b : state.marginLast.b);
+    $('mLeft').value = String(safeOn ? m.l : state.marginLast.l);
+    ['mTop', 'mRight', 'mBottom', 'mLeft'].forEach(function (id) { $(id).disabled = !safeOn; });
     $('mirrorChk').checked = cfg.mirror;
     $('reverseChk').checked = cfg.reverse;
     $('splitChk').checked = cfg.autoSplit;
@@ -179,10 +192,11 @@
     recalc();
   }
 
-  /* Gutter/safety margin only shift content inside the panel; no re-imposition, no preview rebuild. */
+  /* Gutter/margins only shift content inside the panel; no re-imposition, no preview rebuild. */
   function onGutterChange() {
     state.cfg = cfgFromInputs();
-    if (state.cfg.safe > 0) state.safeLast = state.cfg.safe;
+    var m = { t: state.cfg.mTop, r: state.cfg.mRight, b: state.cfg.mBottom, l: state.cfg.mLeft };
+    if (m.t || m.r || m.b || m.l) state.marginLast = m;
     save(LS_CFG, state.cfg);
     updatePreviewStyle();
   }
@@ -290,7 +304,7 @@
     return hasAnyCover();
   }
 
-  function paneHtml(side, pageNo) {
+  function paneHtml(side, pageNo, pos) {
     var cls = 'mini-pane';
     var tag = '';
     if (side) {
@@ -301,7 +315,7 @@
     } else {
       tag = String(pageNo);
     }
-    return '<div class="' + cls + '" data-side="' + esc(side || '') + '">' +
+    return '<div class="' + cls + '" data-side="' + esc(side || '') + '" data-pos="' + (pos || '') + '">' +
       '<span class="pg">' + esc(tag) + '</span>' +
       '<span class="pbl">' + esc(t('prev.blank')) + '</span>' +
       '<img alt="" decoding="async"></div>';
@@ -320,8 +334,8 @@
       html += '<div class="sheet-card" data-k="' + s.k + '">' +
         '<div class="sheet-k"><span>' + esc(t('prev.sheet', s.k)) + '</span><span>' + esc(pairLabel(s)) + '</span></div>' +
         '<div class="mini-sheet">' +
-        paneHtml(jacket ? s.left : null, jacket ? null : s.left) +
-        paneHtml(jacket ? s.right : null, jacket ? null : s.right) +
+        paneHtml(jacket ? s.left : null, jacket ? null : s.left, 'left') +
+        paneHtml(jacket ? s.right : null, jacket ? null : s.right, 'right') +
         '</div></div>';
     });
     el.innerHTML = html || '<div class="hint">' + esc(t('prev.empty')) + '</div>';
@@ -341,22 +355,43 @@
     var cfg = state.cfg || C.DEFAULTS;
     var s = C.sheetSize(cfg);
     var g = C.clamp(C.num(cfg.gutter, 0), 0, 30);
-    var safe = C.clamp(C.num(cfg.safe, 0), 0, 20);
+    var m = margins();
+    var side = Math.max(m.l, m.r);
+    var pct = function (mm) { return (mm / Math.max(1, s.w) * 100).toFixed(3) + '%'; };
     var root = document.documentElement;
     root.style.setProperty('--sheet-ar', s.w + '/' + s.h);
     root.style.setProperty('--gut', (g / s.w * 100).toFixed(3) + '%');
-    /* % padding resolves against the sheet width, so this maps to `safe` mm on screen */
-    root.style.setProperty('--safe-pct', (safe / Math.max(1, s.w) * 100).toFixed(3) + '%');
+    root.style.setProperty('--m-t', pct(m.t));
+    root.style.setProperty('--m-r', pct(side));
+    root.style.setProperty('--m-b', pct(m.b));
+    root.style.setProperty('--m-l', pct(side));
   }
 
-  /* Printable area inside one panel: the printer cannot print the outer few mm. */
-  function safeInset() {
-    return C.clamp(C.num(state.cfg && state.cfg.safe, 0), 0, 20);
+  /* Printer margins per edge (mm); page content is kept out of them. */
+  function margins() {
+    var cfg = state.cfg || C.DEFAULTS;
+    return {
+      t: C.clamp(C.num(cfg.mTop, C.DEFAULTS.mTop), 0, 30),
+      r: C.clamp(C.num(cfg.mRight, C.DEFAULTS.mRight), 0, 30),
+      b: C.clamp(C.num(cfg.mBottom, C.DEFAULTS.mBottom), 0, 30),
+      l: C.clamp(C.num(cfg.mLeft, C.DEFAULTS.mLeft), 0, 30)
+    };
   }
 
-  function fitBox(rect) {
-    var inset = safeInset();
-    return { w: Math.max(20, rect.w - 2 * inset), h: Math.max(20, rect.h - 2 * inset) };
+  /* Content rectangle inside each panel: printer margins only on the paper's outer edges,
+     the fold side keeps just the gutter. */
+  function contentRects() {
+    var geo = C.geometry(state.cfg);
+    var m = margins();
+    var side = Math.max(m.l, m.r);
+    var w = Math.max(20, geo.left.w - side);
+    var h = Math.max(20, geo.sheet.h - m.t - m.b);
+    return {
+      left: { x: geo.left.x + side, y: m.b, w: w, h: h },
+      right: { x: geo.right.x, y: m.b, w: w, h: h },
+      side: side,
+      sheet: geo.sheet
+    };
   }
 
   function syncPane(el, side, pageNo) {
@@ -873,7 +908,8 @@
 
   async function buildJob(kind) {
     var geo = C.geometry(state.cfg);
-    var box = fitBox(geo.left);
+    var rects = contentRects();
+    var content = rects.left;
     if (kind === 'jacket') {
       var jSheets = jacketSides();
       var tokens = [];
@@ -886,9 +922,9 @@
       for (var ti = 0; ti < tokens.length; ti++) {
         showBusy(t('print.busy') + ' ' + (ti + 1) + '/' + tokens.length);
         await yieldUI();
-        jCache[tokens[ti]] = await coverPanel(tokens[ti], box.w, box.h);
+        jCache[tokens[ti]] = await coverPanel(tokens[ti], content.w, content.h);
       }
-      return { sheets: jSheets, cache: jCache, geo: geo, kind: kind };
+      return { sheets: jSheets, cache: jCache, geo: geo, rects: rects, kind: kind };
     }
     var sheets = C.jobsForVolume(currentVolume(), state.cfg)[kind];
     var needed = [];
@@ -901,8 +937,8 @@
     var cache = {};
     var cursor = 0;
     var doneCount = 0;
-    var panelWmm = box.w;
-    var panelHmm = box.h;
+    var panelWmm = content.w;
+    var panelHmm = content.h;
     var dpi = state.cfg.dpi;
     async function lane() {
       while (cursor < needed.length) {
@@ -919,7 +955,7 @@
     var laneCount = Math.min(state.cfg.dpi >= 600 ? 1 : 2, needed.length);
     for (var l = 0; l < laneCount; l++) lanes.push(lane());
     await Promise.all(lanes);
-    return { sheets: sheets, cache: cache, geo: geo, kind: kind };
+    return { sheets: sheets, cache: cache, geo: geo, rects: rects, kind: kind };
   }
 
   function addPanel(sheet, pageNo, rect, cache) {
@@ -953,8 +989,8 @@
       sheet.className = 'print-sheet';
       sheet.style.width = sh.w + 'mm';
       sheet.style.height = sh.h + 'mm';
-      addPanel(sheet, s.left, job.geo.left, job.cache);
-      addPanel(sheet, s.right, job.geo.right, job.cache);
+      addPanel(sheet, s.left, job.rects.left, job.cache);
+      addPanel(sheet, s.right, job.rects.right, job.cache);
       root.appendChild(sheet);
     });
     $('pageStyle').textContent = '@page{size:' + sh.w + 'mm ' + sh.h + 'mm;margin:0}';
@@ -1072,7 +1108,8 @@
 
   async function buildVectorPdf(kind) {
     var geo = C.geometry(state.cfg);
-    var box = fitBox(geo.left);
+    var rects = contentRects();
+    var content = rects.left;
     var out = await PL.PDFDocument.create();
     var W = mmToPt(geo.sheet.w);
     var H = mmToPt(geo.sheet.h);
@@ -1089,7 +1126,7 @@
       for (var ti = 0; ti < tokens.length; ti++) {
         showBusy(t('print.busy') + ' ' + (ti + 1) + '/' + tokens.length);
         await yieldUI();
-        cache[tokens[ti]] = await coverVectorEntry(tokens[ti], out, box.w, box.h);
+        cache[tokens[ti]] = await coverVectorEntry(tokens[ti], out, content.w, content.h);
       }
     } else {
       sheets = C.jobsForVolume(currentVolume(), state.cfg)[kind];
@@ -1106,13 +1143,13 @@
         var srcPage = await srcDoc.getPage(needed[i] - 1);
         var rot = srcPage.getRotation ? (srcPage.getRotation().angle % 360) : 0;
         if (rot !== 0) throw { code: 'VECTOR_ROTATION' };
-        cache[needed[i]] = await pageEntry(out, srcPage, box.w, box.h);
+        cache[needed[i]] = await pageEntry(out, srcPage, content.w, content.h);
       }
     }
     sheets.forEach(function (s) {
       var page = out.addPage([W, H]);
-      placeEntry(page, cache[s.left], geo.left);
-      placeEntry(page, cache[s.right], geo.right);
+      placeEntry(page, cache[s.left], rects.left);
+      placeEntry(page, cache[s.right], rects.right);
     });
     var bytes = await out.save();
     var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
@@ -1314,10 +1351,18 @@
       onGutterChange();
     });
 
-    $('safeNum').addEventListener('change', onGutterChange);
+    ['mTop', 'mRight', 'mBottom', 'mLeft'].forEach(function (id) {
+      $(id).addEventListener('change', onGutterChange);
+    });
     $('safeChk').addEventListener('change', function () {
-      if (this.checked) $('safeNum').value = String(state.safeLast || 4);
-      $('safeNum').disabled = !this.checked;
+      var on = this.checked;
+      ['mTop', 'mRight', 'mBottom', 'mLeft'].forEach(function (id) { $(id).disabled = !on; });
+      if (on) {
+        $('mTop').value = String(state.marginLast.t);
+        $('mRight').value = String(state.marginLast.r);
+        $('mBottom').value = String(state.marginLast.b);
+        $('mLeft').value = String(state.marginLast.l);
+      }
       onGutterChange();
     });
 

@@ -65,7 +65,7 @@ has('"print.pdfFallback"');
 ['id="fileInput"', 'id="coverFrontInput"', 'id="coverBackInput"', 'id="coverFrontClear"',
  'id="coverBackClear"', 'id="coverFrontPrev"', 'id="coverBackPrev"', 'id="coverModeBar"',
  'id="coverGrid"', 'id="coverHintCustom"', 'id="coverErr"',
- 'id="gutterRange"', 'id="gutterNum"', 'id="safeChk"', 'id="safeNum"', 'id="mirrorChk"',
+ 'id="gutterRange"', 'id="gutterNum"', 'id="safeChk"', 'id="mTop"', 'id="mRight"', 'id="mBottom"', 'id="mLeft"', 'id="mirrorChk"',
  'id="reverseChk"', 'id="splitChk"', 'id="maxSheets"', 'id="rangeFrom"', 'id="rangeTo"',
  'id="btnFront"', 'id="btnBack"', 'id="btnJacket"', 'id="volChips"', 'id="prevFront"',
  'id="prevBack"', 'id="prevJacket"', 'id="jacketPane"', 'id="statText"', 'id="statReset"', 'id="langSel"',
@@ -83,6 +83,10 @@ has('"print.jacketNeed"');
 has('"set.safe"');
 has('"set.safeOn"');
 has('"set.safeHint"');
+has('"set.mTop"');
+has('"set.mRight"');
+has('"set.mBottom"');
+has('"set.mLeft"');
 has('"set.coverModePage"');
 has('"set.coverModeCustom"');
 has('"set.coverModeBlank"');

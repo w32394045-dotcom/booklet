@@ -183,30 +183,39 @@ async function setFile(selector, filePath) {
     const blobOk = await ev('[...document.querySelectorAll("#printRoot img")].every(function(i){return i.src.indexOf("blob:")===0})');
     ok(blobOk, 'print images are local blob URLs');
 
-    /* safety margin keeps content inside the printer's printable area */
-    await ev('window.booklet.setConfig({safe:4})', true);
+    /* per-edge printer margins keep content inside the printable area */
+    await ev('window.booklet.setConfig({mTop:4,mRight:4,mBottom:4,mLeft:4,safe:4})', true);
     const sdom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=[...document.querySelectorAll("#printRoot .print-sheet:nth-child(2) img")];return JSON.stringify(im.map(function(i){return [parseFloat(i.style.left),parseFloat(i.style.top),parseFloat(i.style.width),parseFloat(i.style.height)]}))})');
-    eq(sdom.length, 2, 'safety-margin sheet has both panels');
-    ok(sdom[0][0] >= 4 - 0.01, 'left page inset from paper edge by safety margin', sdom[0][0]);
-    ok(sdom[0][1] >= 4 - 0.01, 'page inset from top edge by safety margin', sdom[0][1]);
-    ok(sdom[0][2] <= 142.5 - 8 + 0.3, 'page width fits the printable area', sdom[0][2]);
-    ok(sdom[1][0] >= 154.5 + 4 - 0.01, 'right page inset from center', sdom[1][0]);
+    eq(sdom.length, 2, 'margin sheet has both panels');
+    ok(sdom[0][0] >= 4 - 0.1, 'left page inset from paper edge', sdom[0][0]);
+    ok(sdom[0][1] >= 4 - 0.1, 'page inset from top edge', sdom[0][1]);
+    ok(sdom[0][2] <= 142.5 - 4 + 0.3, 'page width fits printable width', sdom[0][2]);
+    ok(sdom[1][0] >= 154.5 - 0.1, 'right page starts at its panel edge', sdom[1][0]);
     const gapSafe = sdom[1][0] - (sdom[0][0] + sdom[0][2]);
-    approx(gapSafe, 12 + 8, 'gutter + both safety margins = 20mm gap', 0.5);
-    const padInfo = await evj(`(function(){var p=document.querySelector('#prevFront .mini-pane');var cs=getComputedStyle(p);var r=p.getBoundingClientRect();return JSON.stringify({pad:parseFloat(cs.paddingLeft),w:r.width});})()`);
-    approx(padInfo.pad / padInfo.w * 100, 4 / 142.5 * 100, 'preview shows the safety margin inset', 0.6);
-    await ev('window.booklet.setConfig({safe:4})', true);
+    approx(gapSafe, 12, 'outer margins keep the fold gap = gutter 12mm', 0.6);
+    const padInfo = await evj(`(function(){var p=document.querySelector('#prevFront .mini-pane[data-pos="left"]');var cs=getComputedStyle(p);var r=p.getBoundingClientRect();return JSON.stringify({pad:parseFloat(cs.paddingLeft),padB:parseFloat(cs.paddingBottom),w:r.width});})()`);
+    approx(padInfo.pad / padInfo.w * 100, 4 / 142.5 * 100, 'preview shows the left printer margin', 0.6);
+    approx(padInfo.padB / padInfo.w * 100, 4 / 142.5 * 100, 'preview shows the bottom printer margin', 0.6);
 
-    /* safety margin can be switched off */
+    /* a 12.7mm bottom margin (typical laser) keeps the footer area clear */
+    await ev('window.booklet.setConfig({mBottom:12.7})', true);
+    const bdom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=[...document.querySelectorAll("#printRoot .print-sheet:nth-child(2) img")];return JSON.stringify(im.map(function(i){return [parseFloat(i.style.left),parseFloat(i.style.top),parseFloat(i.style.height)]}))})');
+    ok(bdom[0][1] >= 12.7 - 0.1, '12.7mm bottom margin pushes content up', bdom[0][1]);
+    ok(bdom[0][1] + bdom[0][2] <= 210 - 4 + 0.3, 'top margin still respected', bdom[0][1] + bdom[0][2]);
+    const padB = await evj(`(function(){var p=document.querySelector('#prevFront .mini-pane[data-pos="left"]');var cs=getComputedStyle(p);return JSON.stringify({padB:parseFloat(cs.paddingBottom),w:p.getBoundingClientRect().width});})()`);
+    approx(padB.padB / padB.w * 100, 12.7 / 142.5 * 100, 'preview shows the 12.7mm bottom margin', 0.7);
+    await ev('window.booklet.setConfig({mBottom:4})', true);
+
+    /* margins can be switched off */
     await ev('(function(){var c=document.getElementById("safeChk");c.checked=false;c.dispatchEvent(new Event("change",{bubbles:true}));})()');
-    const safeOff = await evj('JSON.stringify({safe:window.booklet.getState().cfg.safe,disabled:document.getElementById("safeNum").disabled})');
-    eq(safeOff.safe, 0, 'safety margin switch off -> 0mm');
-    eq(safeOff.disabled, true, 'margin number disabled when switched off');
-    const offDom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=document.querySelector("#printRoot .print-sheet:nth-child(2) img");return JSON.stringify([parseFloat(im.style.left),parseFloat(im.style.top),parseFloat(im.style.width)]);})');
+    const safeOff = await evj('JSON.stringify({t:window.booklet.getState().cfg.mTop,disabled:document.getElementById("mTop").disabled})');
+    eq(safeOff.t, 0, 'margin switch off -> 0mm');
+    eq(safeOff.disabled, true, 'margin inputs disabled when switched off');
+    const offDom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=document.querySelector("#printRoot .print-sheet:nth-child(2) img");return JSON.stringify([parseFloat(im.style.left),parseFloat(im.style.top)]);})');
     approx(offDom[0], 0, 'margin off: page back at the paper edge', 0.6);
     await ev('(function(){var c=document.getElementById("safeChk");c.checked=true;c.dispatchEvent(new Event("change",{bubbles:true}));})()');
-    const safeOn = await evj('JSON.stringify({safe:window.booklet.getState().cfg.safe,disabled:document.getElementById("safeNum").disabled})');
-    eq([safeOn.safe, safeOn.disabled], [4, false], 'safety margin switch back on restores 4mm');
+    const safeOn = await evj('JSON.stringify({b:window.booklet.getState().cfg.mBottom,disabled:document.getElementById("mBottom").disabled})');
+    eq([safeOn.b, safeOn.disabled], [4, false], 'margin switch back on restores values');
 
     /* ---------- 5. real print channel ---------- */
     const frontPdf = await printPdf();

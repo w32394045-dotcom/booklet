@@ -43,6 +43,10 @@ eq(C.sanitizeCfg(null, 0).safe, 4, 'default safety margin 4mm');
 eq(C.sanitizeCfg({ safe: 0 }, 0).safe, 0, 'safety margin 0 allowed');
 eq(C.sanitizeCfg({ safe: 99 }, 0).safe, 20, 'safety margin clamp high');
 eq(C.sanitizeCfg({ safe: -3 }, 0).safe, 0, 'safety margin clamp low');
+eq(C.sanitizeCfg(null, 0).mBottom, 4, 'default bottom margin 4mm');
+eq(C.sanitizeCfg({ safe: 6 }, 0).mBottom, 6, 'margins fall back to safe');
+eq(C.sanitizeCfg({ mBottom: 12.7 }, 0).mBottom, 12.7, '12.7mm printer margin allowed');
+eq(C.sanitizeCfg({ mLeft: 99 }, 0).mLeft, 30, 'margin clamp high');
 
 const s1 = C.sanitizeCfg({ gutter: 99, dpi: 123, maxSheets: 2, paper: 'X9' }, 0);
 eq(s1.gutter, 30, 'gutter clamp high');
