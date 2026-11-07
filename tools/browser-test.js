@@ -134,6 +134,13 @@ async function setFile(selector, filePath) {
     eq([counts.fi, counts.bi], [5, 5], 'page images per pass (10 total)');
     eq([counts.fb, counts.bb], [1, 1], 'blank panels drawn');
     eq(counts.thumbCount, 10, 'thumbs only for the selected pages');
+    ok(await waitFor('!document.getElementById("qualityHint").classList.contains("hidden")', 20000), 'scan quality hint shown for image-only PDF');
+    const qh = await evj('JSON.stringify({text:document.getElementById("qualityHint").textContent,options:document.querySelectorAll("#dpiSel option").length})');
+    ok(qh.text.indexOf('150') >= 0, 'scan hint reports effective source DPI', qh.text.slice(0, 80));
+    eq(qh.options, 4, '600 DPI option available for scans');
+    await ev('window.booklet.setConfig({dpi:600})', true);
+    eq(await ev('window.booklet.getState().cfg.dpi'), 600, '600 DPI accepted in config');
+    await ev('window.booklet.setConfig({dpi:300})', true);
     await ev('window.booklet.setConfig({gutter:6,paper:"A4"})', true);
     await sleep(200);
 

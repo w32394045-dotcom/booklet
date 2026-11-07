@@ -31,6 +31,7 @@
     previewSig: '',
     previewJobs: null,
     safeLast: 4,
+    quality: null,
     busy: false,
     printing: false,
     printCtx: null,
@@ -110,6 +111,7 @@
     renderPlanBar();
     renderSteps();
     renderStats();
+    renderQualityHint();
   }
 
   function detectLang() {
@@ -642,12 +644,63 @@
     state.thumbSig = '';
     state.thumbError = '';
     state.previewSig = '';
+    state.quality = null;
     clearThumbs();
     syncInputs(state.cfg);
     $('fileChip').classList.remove('hidden');
     $('fileName').textContent = state.pdfName;
     $('fileMeta').textContent = t('file.meta', state.pageCount, bytesText(Math.round(state.pdfSize)));
     recalc();
+    analyzeQuality();
+  }
+
+  /* Estimate the effective resolution of image-only (scanned) pages, so blur can be diagnosed. */
+  async function analyzeQuality() {
+    if (!state.pdf || !state.plan) return;
+    var pages = [];
+    var vol = state.plan.volumes[state.vol];
+    for (var p = vol.from; p <= vol.to && pages.length < 2; p++) pages.push(p);
+    var worst = null;
+    for (var i = 0; i < pages.length; i++) {
+      try {
+        var page = await state.pdf.getPage(pages[i]);
+        var vp = page.getViewport({ scale: 1 });
+        var ops = await page.getOperatorList();
+        var OPS = window.pdfjsLib.OPS || {};
+        var text = await page.getTextContent();
+        var imgW = 0;
+        var imgH = 0;
+        for (var j = 0; j < ops.fnArray.length; j++) {
+          var fn = ops.fnArray[j];
+          if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject) {
+            var args = ops.argsArray[j] || [];
+            if (args.length >= 3) {
+              imgW = Math.max(imgW, +(args[1] || 0));
+              imgH = Math.max(imgH, +(args[2] || 0));
+            }
+          }
+        }
+        page.cleanup();
+        if (imgW > 0 && text.items.length < 20) {
+          var dpi = Math.round(Math.min(imgW / (vp.width / 72), imgH / (vp.height / 72)));
+          if (!worst || dpi < worst) worst = dpi;
+        }
+      } catch (e) {}
+    }
+    state.quality = worst ? { scanDpi: worst } : null;
+    renderQualityHint();
+  }
+
+  function renderQualityHint() {
+    var el = $('qualityHint');
+    if (!el) return;
+    var q = state.quality;
+    if (q && q.scanDpi) {
+      el.textContent = t('print.scanTip', q.scanDpi);
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
   }
 
   async function loadPdfFile(file) {
@@ -862,7 +915,8 @@
     }
     showBusy(t('print.busy') + ' 0/' + needed.length);
     var lanes = [];
-    var laneCount = Math.min(2, needed.length);
+    /* 600 DPI canvases are big; render one at a time to keep memory sane. */
+    var laneCount = Math.min(state.cfg.dpi >= 600 ? 1 : 2, needed.length);
     for (var l = 0; l < laneCount; l++) lanes.push(lane());
     await Promise.all(lanes);
     return { sheets: sheets, cache: cache, geo: geo, kind: kind };

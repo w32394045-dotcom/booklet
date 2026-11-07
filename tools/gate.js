@@ -69,7 +69,7 @@ has('"print.pdfFallback"');
  'id="reverseChk"', 'id="splitChk"', 'id="maxSheets"', 'id="rangeFrom"', 'id="rangeTo"',
  'id="btnFront"', 'id="btnBack"', 'id="btnJacket"', 'id="volChips"', 'id="prevFront"',
  'id="prevBack"', 'id="prevJacket"', 'id="jacketPane"', 'id="statText"', 'id="statReset"', 'id="langSel"',
- 'id="busy"', 'id="drop"', 'id="modeBar"', 'id="dpiField"', 'id="pdfLinks"'].forEach((h) => has(h));
+ 'id="busy"', 'id="drop"', 'id="modeBar"', 'id="dpiField"', 'id="pdfLinks"', 'id="qualityHint"'].forEach((h) => has(h));
 
 /* cover UI + direct print hooks */
 has('"set.coverFront"');
@@ -88,6 +88,7 @@ has('"set.coverModeCustom"');
 has('"set.coverModeBlank"');
 has('"print.jacketPage"');
 has('"print.blankJacket"');
+has('"print.scanTip"');
 ok(html.indexOf('sourceMappingURL') < 0, 'no sourcemap directives');
 ok(html.indexOf('printBlobUrl') >= 0, 'vector print uses hidden iframe (no new tab)');
 

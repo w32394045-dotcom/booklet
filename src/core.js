@@ -26,7 +26,7 @@
 
   var COVER_MODES = ['page', 'custom', 'blank'];
 
-  var DPI_LIST = [200, 300, 400];
+  var DPI_LIST = [200, 300, 400, 600];
 
   function num(v, d) {
     var n = typeof v === 'number' ? v : parseFloat(v);

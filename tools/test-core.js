@@ -52,6 +52,7 @@ eq(s1.paper, 'A4', 'paper fallback');
 eq(C.sanitizeCfg({ gutter: -5 }, 0).gutter, 0, 'gutter clamp low');
 eq(C.sanitizeCfg({ maxSheets: 99 }, 0).maxSheets, 50, 'maxSheets clamp high');
 eq(C.sanitizeCfg({ dpi: 400 }, 0).dpi, 400, 'dpi 400 ok');
+eq(C.sanitizeCfg({ dpi: 600 }, 0).dpi, 600, 'dpi 600 ok for scans');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).mirror, true, 'string bool true');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).reverse, true, 'string 1 bool');
 eq(C.sanitizeCfg({ autoSplit: 'false' }, 0).autoSplit, false, 'string false bool');

@@ -101,7 +101,8 @@
       "print.blankJacket": "空白护封：第 3 遍会打一张空白纸，折好包在正文外即可。",
       "set.safe": "打印机安全边距",
       "set.safeHint": "多数打印机边缘有 3–5mm 打不到。默认 4mm 会把版面整体缩进，避免折好后外侧文字被切；设为 0 会尽量铺满（仅限支持无边距的打印机）。",
-      "set.safeOn": "启用安全边距"
+      "set.safeOn": "启用安全边距",
+      "print.scanTip": "检测到扫描页：源图约 {0} DPI。矢量 PDF 会原样嵌入扫描图（不重新压缩）；若用渲染打印，建议选 400/600 DPI，并在打印对话框选「实际大小 100%」。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -195,7 +196,8 @@
       "print.blankJacket": "空白護封：第 3 遍會印一張空白紙，折好包在正文外即可。",
       "set.safe": "印表機安全邊距",
       "set.safeHint": "多數印表機邊緣有 3–5mm 印不到。預設 4mm 會把版面整體內縮，避免折好後外側文字被切；設為 0 會盡量鋪滿（僅限支援無邊界列印的印表機）。",
-      "set.safeOn": "啟用安全邊距"
+      "set.safeOn": "啟用安全邊距",
+      "print.scanTip": "偵測到掃描頁：來源圖約 {0} DPI。向量 PDF 會原樣嵌入掃描圖（不重新壓縮）；若用算圖列印，建議選 400/600 DPI，並在列印對話框選「實際大小 100%」。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -289,7 +291,8 @@
       "print.blankJacket": "白紙カバー：3回目で白紙を1枚印刷し、折って本文の外側に巻きます。",
       "set.safe": "プリンター安全余白",
       "set.safeHint": "多くのプリンターは端から3〜5mm印刷できません。既定の4mmで版面を内側に縮め、外側の文字切れを防ぎます。0にすると端まで使います（縁なし印刷対応機のみ）。",
-      "set.safeOn": "安全余白を使う"
+      "set.safeOn": "安全余白を使う",
+      "print.scanTip": "スキャンページを検出：元画像は約 {0} DPI。ベクター PDF は元画像をそのまま埋め込みます（再圧縮なし）。描画印刷を使う場合は 400/600 DPI を選び、印刷ダイアログで「実際のサイズ 100%」にしてください。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -383,7 +386,8 @@
       "print.blankJacket": "빈 재킷: 3번째에서 빈 종이 1장을 인쇄해 접은 뒤 본문 겉에 감싸세요.",
       "set.safe": "프린터 안전 여백",
       "set.safeHint": "대부분의 프린터는 가장자리 3–5mm를 인쇄할 수 없습니다. 기본 4mm는 판면을 안쪽으로 줄여 바깥쪽 글자 잘림을 막습니다. 0이면 가장자리까지 사용합니다(테두리 없이 인쇄 지원 시).",
-      "set.safeOn": "안전 여백 사용"
+      "set.safeOn": "안전 여백 사용",
+      "print.scanTip": "스캔 페이지 감지: 원본 이미지 약 {0} DPI. 벡터 PDF는 원본 이미지를 그대로 삽입합니다(재압축 없음). 렌더링 인쇄를 쓸 경우 400/600 DPI를 선택하고 인쇄 대화상자에서 \"실제 크기 100%\"를 고르세요."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -477,7 +481,8 @@
       "print.blankJacket": "Leeres Umschlagblatt: Durchgang 3 druckt ein leeres Blatt, das um den Inhalt gelegt wird.",
       "set.safe": "Sicherheitsrand",
       "set.safeHint": "Viele Drucker bedrucken die äußeren 3–5 mm nicht. 4 mm verkleinert das Layout und verhindert abgeschnittene Zeichen; 0 nutzt die Seite bis zum Rand (nur randlos-fähige Drucker).",
-      "set.safeOn": "Sicherheitsrand"
+      "set.safeOn": "Sicherheitsrand",
+      "print.scanTip": "Scanseite erkannt: Quellbild ca. {0} DPI. Vektor-PDF bettet das Bild unverändert ein (keine Neukomprimierung). Beim gerenderten Druck 400/600 DPI und „Tatsächliche Größe 100 %“ wählen."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -571,7 +576,8 @@
       "print.blankJacket": "Jaquette blanche : la 3e passe imprime une feuille blanche à replier autour du contenu.",
       "set.safe": "Marge de sécurité",
       "set.safeHint": "La plupart des imprimantes n'impriment pas les 3–5 mm extérieurs. 4 mm réduit la mise en page pour éviter tout texte coupé ; 0 utilise toute la page (imprimante sans bordure uniquement).",
-      "set.safeOn": "Marge de sécurité"
+      "set.safeOn": "Marge de sécurité",
+      "print.scanTip": "Page scannée détectée : image source ~{0} DPI. Le PDF vectoriel intègre l'image telle quelle (sans recompression) ; en impression rendue, choisissez 400/600 DPI et « Taille réelle 100 % »."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -665,7 +671,8 @@
       "print.blankJacket": "Blank jacket: pass 3 prints one blank sheet to fold around the content.",
       "set.safe": "Printer safety margin",
       "set.safeHint": "Most printers can't print the outer 3–5 mm. 4 mm shrinks the layout so text is not clipped at the outer edge; 0 uses the full page (borderless printers only).",
-      "set.safeOn": "Safety margin"
+      "set.safeOn": "Safety margin",
+      "print.scanTip": "Scanned page detected: source image ≈ {0} DPI. Vector PDF embeds it as-is (no recompression); for rendered printing pick 400/600 DPI and “Actual size 100%”."
     }
   }
 }
