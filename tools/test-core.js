@@ -39,6 +39,10 @@ eq(C.sanitizeCfg(null, 0).coverMode, 'page', 'default coverMode page');
 eq(C.sanitizeCfg({ coverMode: 'custom' }, 0).coverMode, 'custom', 'coverMode custom');
 eq(C.sanitizeCfg({ coverMode: 'blank' }, 0).coverMode, 'blank', 'coverMode blank');
 eq(C.sanitizeCfg({ coverMode: 'weird' }, 0).coverMode, 'page', 'coverMode fallback');
+eq(C.sanitizeCfg(null, 0).safe, 4, 'default safety margin 4mm');
+eq(C.sanitizeCfg({ safe: 0 }, 0).safe, 0, 'safety margin 0 allowed');
+eq(C.sanitizeCfg({ safe: 99 }, 0).safe, 20, 'safety margin clamp high');
+eq(C.sanitizeCfg({ safe: -3 }, 0).safe, 0, 'safety margin clamp low');
 
 const s1 = C.sanitizeCfg({ gutter: 99, dpi: 123, maxSheets: 2, paper: 'X9' }, 0);
 eq(s1.gutter, 30, 'gutter clamp high');

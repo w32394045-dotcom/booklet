@@ -140,6 +140,7 @@
       paper: $('paperSel').value,
       dpi: +$('dpiSel').value,
       gutter: parseFloat($('gutterNum').value),
+      safe: parseFloat($('safeNum').value),
       mirror: $('mirrorChk').checked,
       reverse: $('reverseChk').checked,
       autoSplit: $('splitChk').checked,
@@ -154,6 +155,7 @@
     $('dpiSel').value = String(cfg.dpi);
     $('gutterRange').value = String(cfg.gutter);
     $('gutterNum').value = String(cfg.gutter);
+    $('safeNum').value = String(cfg.safe);
     $('mirrorChk').checked = cfg.mirror;
     $('reverseChk').checked = cfg.reverse;
     $('splitChk').checked = cfg.autoSplit;
@@ -331,9 +333,22 @@
     var cfg = state.cfg || C.DEFAULTS;
     var s = C.sheetSize(cfg);
     var g = C.clamp(C.num(cfg.gutter, 0), 0, 30);
+    var safe = C.clamp(C.num(cfg.safe, 0), 0, 20);
     var root = document.documentElement;
     root.style.setProperty('--sheet-ar', s.w + '/' + s.h);
     root.style.setProperty('--gut', (g / s.w * 100).toFixed(3) + '%');
+    /* % padding resolves against the sheet width, so this maps to `safe` mm on screen */
+    root.style.setProperty('--safe-pct', (safe / Math.max(1, s.w) * 100).toFixed(3) + '%');
+  }
+
+  /* Printable area inside one panel: the printer cannot print the outer few mm. */
+  function safeInset() {
+    return C.clamp(C.num(state.cfg && state.cfg.safe, 0), 0, 20);
+  }
+
+  function fitBox(rect) {
+    var inset = safeInset();
+    return { w: Math.max(20, rect.w - 2 * inset), h: Math.max(20, rect.h - 2 * inset) };
   }
 
   function syncPane(el, side, pageNo) {
@@ -799,6 +814,7 @@
 
   async function buildJob(kind) {
     var geo = C.geometry(state.cfg);
+    var box = fitBox(geo.left);
     if (kind === 'jacket') {
       var jSheets = jacketSides();
       var tokens = [];
@@ -811,7 +827,7 @@
       for (var ti = 0; ti < tokens.length; ti++) {
         showBusy(t('print.busy') + ' ' + (ti + 1) + '/' + tokens.length);
         await yieldUI();
-        jCache[tokens[ti]] = await coverPanel(tokens[ti], geo.left.w, geo.left.h);
+        jCache[tokens[ti]] = await coverPanel(tokens[ti], box.w, box.h);
       }
       return { sheets: jSheets, cache: jCache, geo: geo, kind: kind };
     }
@@ -826,8 +842,8 @@
     var cache = {};
     var cursor = 0;
     var doneCount = 0;
-    var panelWmm = geo.left.w;
-    var panelHmm = geo.left.h;
+    var panelWmm = box.w;
+    var panelHmm = box.h;
     var dpi = state.cfg.dpi;
     async function lane() {
       while (cursor < needed.length) {
@@ -968,6 +984,7 @@
 
   async function buildVectorPdf(kind) {
     var geo = C.geometry(state.cfg);
+    var box = fitBox(geo.left);
     var out = await PL.PDFDocument.create();
     var W = mmToPt(geo.sheet.w);
     var H = mmToPt(geo.sheet.h);
@@ -984,7 +1001,7 @@
       for (var ti = 0; ti < tokens.length; ti++) {
         showBusy(t('print.busy') + ' ' + (ti + 1) + '/' + tokens.length);
         await yieldUI();
-        cache[tokens[ti]] = await coverVectorEntry(tokens[ti], out, geo.left.w, geo.left.h);
+        cache[tokens[ti]] = await coverVectorEntry(tokens[ti], out, box.w, box.h);
       }
     } else {
       sheets = C.jobsForVolume(currentVolume(), state.cfg)[kind];
@@ -1002,7 +1019,7 @@
         var rot = srcPage.getRotation ? (srcPage.getRotation().angle % 360) : 0;
         if (rot !== 0) throw { code: 'VECTOR_ROTATION' };
         var sz = srcPage.getSize();
-        var fit = C.fitPage(sz.width, sz.height, geo.left.w, geo.left.h);
+        var fit = C.fitPage(sz.width, sz.height, box.w, box.h);
         cache[needed[i]] = {
           type: 'page',
           embed: await out.embedPage(srcPage),
@@ -1215,6 +1232,8 @@
       $('gutterRange').value = this.value;
       onGutterChange();
     });
+
+    $('safeNum').addEventListener('change', onGutterChange);
 
     $('langSel').addEventListener('change', function () { setLang(this.value); });
 

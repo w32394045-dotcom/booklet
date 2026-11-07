@@ -95,6 +95,7 @@ if (pdflib.indexOf('PDFLib') < 0) fail('pdf-lib global missing');
 [['id="app"', body], ['id="printRoot"', body], ['id="pageStyle"', body], ['id="modeBar"', body],
  ['id="dpiField"', body], ['id="pdfLinks"', body],
  ['id="btnFront"', body], ['id="btnBack"', body], ['id="btnJacket"', body], ['id="gutterRange"', body],
+ ['id="safeNum"', body],
  ['id="coverFrontInput"', body], ['id="coverBackInput"', body], ['id="coverFrontClear"', body],
  ['id="coverBackClear"', body], ['id="coverFrontPrev"', body], ['id="coverBackPrev"', body],
  ['id="coverModeBar"', body], ['id="coverGrid"', body], ['id="coverHintCustom"', body],

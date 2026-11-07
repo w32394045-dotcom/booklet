@@ -165,8 +165,8 @@ async function setFile(selector, filePath) {
     await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
     await ev('window.booklet.setConfig({autoSplit:true,maxSheets:20,rangeFrom:1,rangeTo:10,gutter:6})', true);
 
-    /* ---------- 4. gutter geometry in print DOM ---------- */
-    await ev('window.booklet.setConfig({dpi:200,gutter:12})', true);
+    /* ---------- 4. gutter + safety margin in the print DOM ---------- */
+    await ev('window.booklet.setConfig({dpi:200,gutter:12,safe:0})', true);
     const dom = await evj('window.booklet.buildPrintDom("front").then(function(){var s=[...document.querySelectorAll("#printRoot .print-sheet")];return JSON.stringify({sheets:s.length,style:document.getElementById("pageStyle").textContent,imgs:[...document.querySelectorAll("#printRoot .print-sheet:nth-child(2) img")].map(function(i){return [parseFloat(i.style.left),parseFloat(i.style.width)]})});})');
     eq(dom.sheets, 3, 'print DOM sheet count');
     eq(dom.style, '@page{size:297mm 210mm;margin:0}', 'A4 landscape @page');
@@ -175,6 +175,20 @@ async function setFile(selector, filePath) {
     approx(gap, 12, 'center gutter = 12mm gap', 0.2);
     const blobOk = await ev('[...document.querySelectorAll("#printRoot img")].every(function(i){return i.src.indexOf("blob:")===0})');
     ok(blobOk, 'print images are local blob URLs');
+
+    /* safety margin keeps content inside the printer's printable area */
+    await ev('window.booklet.setConfig({safe:4})', true);
+    const sdom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=[...document.querySelectorAll("#printRoot .print-sheet:nth-child(2) img")];return JSON.stringify(im.map(function(i){return [parseFloat(i.style.left),parseFloat(i.style.top),parseFloat(i.style.width),parseFloat(i.style.height)]}))})');
+    eq(sdom.length, 2, 'safety-margin sheet has both panels');
+    ok(sdom[0][0] >= 4 - 0.01, 'left page inset from paper edge by safety margin', sdom[0][0]);
+    ok(sdom[0][1] >= 4 - 0.01, 'page inset from top edge by safety margin', sdom[0][1]);
+    ok(sdom[0][2] <= 142.5 - 8 + 0.3, 'page width fits the printable area', sdom[0][2]);
+    ok(sdom[1][0] >= 154.5 + 4 - 0.01, 'right page inset from center', sdom[1][0]);
+    const gapSafe = sdom[1][0] - (sdom[0][0] + sdom[0][2]);
+    approx(gapSafe, 12 + 8, 'gutter + both safety margins = 20mm gap', 0.5);
+    const padInfo = await evj(`(function(){var p=document.querySelector('#prevFront .mini-pane');var cs=getComputedStyle(p);var r=p.getBoundingClientRect();return JSON.stringify({pad:parseFloat(cs.paddingLeft),w:r.width});})()`);
+    approx(padInfo.pad / padInfo.w * 100, 4 / 142.5 * 100, 'preview shows the safety margin inset', 0.6);
+    await ev('window.booklet.setConfig({safe:4})', true);
 
     /* ---------- 5. real print channel ---------- */
     const frontPdf = await printPdf();
