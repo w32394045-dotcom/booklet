@@ -30,6 +30,7 @@
     thumbError: '',
     previewSig: '',
     previewJobs: null,
+    safeLast: 4,
     busy: false,
     printing: false,
     printCtx: null,
@@ -140,7 +141,7 @@
       paper: $('paperSel').value,
       dpi: +$('dpiSel').value,
       gutter: parseFloat($('gutterNum').value),
-      safe: parseFloat($('safeNum').value),
+      safe: $('safeChk').checked ? parseFloat($('safeNum').value) : 0,
       mirror: $('mirrorChk').checked,
       reverse: $('reverseChk').checked,
       autoSplit: $('splitChk').checked,
@@ -155,7 +156,11 @@
     $('dpiSel').value = String(cfg.dpi);
     $('gutterRange').value = String(cfg.gutter);
     $('gutterNum').value = String(cfg.gutter);
-    $('safeNum').value = String(cfg.safe);
+    var safeOn = cfg.safe > 0;
+    if (safeOn) state.safeLast = cfg.safe;
+    $('safeChk').checked = safeOn;
+    $('safeNum').value = String(safeOn ? cfg.safe : (state.safeLast || 4));
+    $('safeNum').disabled = !safeOn;
     $('mirrorChk').checked = cfg.mirror;
     $('reverseChk').checked = cfg.reverse;
     $('splitChk').checked = cfg.autoSplit;
@@ -172,9 +177,10 @@
     recalc();
   }
 
-  /* The gutter only shifts content inside the panel; no re-imposition, no preview rebuild. */
+  /* Gutter/safety margin only shift content inside the panel; no re-imposition, no preview rebuild. */
   function onGutterChange() {
     state.cfg = cfgFromInputs();
+    if (state.cfg.safe > 0) state.safeLast = state.cfg.safe;
     save(LS_CFG, state.cfg);
     updatePreviewStyle();
   }
@@ -930,6 +936,36 @@
     return state.pdfLibDoc;
   }
 
+  /* pdf.js displays the CropBox view of a page; embed exactly that box or the output jumps. */
+  function pageViewBox(p) {
+    var size = p.getSize();
+    var media = p.getMediaBox ? p.getMediaBox() : { x: 0, y: 0, width: size.width, height: size.height };
+    var crop = p.getCropBox ? p.getCropBox() : media;
+    var x0 = Math.max(media.x, crop.x);
+    var y0 = Math.max(media.y, crop.y);
+    var x1 = Math.min(media.x + media.width, crop.x + crop.width);
+    var y1 = Math.min(media.y + media.height, crop.y + crop.height);
+    return { x: x0, y: y0, width: Math.max(1, x1 - x0), height: Math.max(1, y1 - y0) };
+  }
+
+  /* pdf.js shows the page's CropBox view; pdf-lib embeds the MediaBox, which would print a
+     different crop than the preview. Such pages fall back to rendered printing instead. */
+  async function pageEntry(out, srcPage, panelWmm, panelHmm) {
+    var view = pageViewBox(srcPage);
+    var media = srcPage.getMediaBox ? srcPage.getMediaBox() : view;
+    if (Math.abs(view.x - media.x) > 0.01 || Math.abs(view.y - media.y) > 0.01 ||
+      Math.abs(view.width - media.width) > 0.01 || Math.abs(view.height - media.height) > 0.01) {
+      throw { code: 'VECTOR_CROPBOX' };
+    }
+    var fit = C.fitPage(view.width, view.height, panelWmm, panelHmm);
+    return {
+      type: 'page',
+      embed: await out.embedPage(srcPage),
+      wPt: mmToPt(fit.wmm),
+      hPt: mmToPt(fit.hmm)
+    };
+  }
+
   async function coverVectorEntry(token, out, panelWmm, panelHmm) {
     var slot = state.covers[token];
     if (!slot || !slot.kind) return null;
@@ -967,17 +1003,15 @@
     var srcPage = await slot.libDoc.getPage(0);
     var rot = srcPage.getRotation ? (srcPage.getRotation().angle % 360) : 0;
     if (rot !== 0) throw { code: 'VECTOR_ROTATION' };
-    var sz = srcPage.getSize();
-    var fit = C.fitPage(sz.width, sz.height, panelWmm, panelHmm);
-    return { type: 'page', embed: await out.embedPage(srcPage), wPt: mmToPt(fit.wmm), hPt: mmToPt(fit.hmm) };
+    return await pageEntry(out, srcPage, panelWmm, panelHmm);
   }
 
   function placeEntry(page, entry, rect) {
     if (!entry) return;
-    var panelW = mmToPt(rect.w);
-    var panelH = mmToPt(rect.h);
-    var x = mmToPt(rect.x) + (panelW - entry.wPt) / 2;
-    var y = mmToPt(rect.y) + (panelH - entry.hPt) / 2;
+    var pw = mmToPt(rect.w);
+    var ph = mmToPt(rect.h);
+    var x = mmToPt(rect.x) + (pw - entry.wPt) / 2;
+    var y = mmToPt(rect.y) + (ph - entry.hPt) / 2;
     if (entry.type === 'image') page.drawImage(entry.embed, { x: x, y: y, width: entry.wPt, height: entry.hPt });
     else page.drawPage(entry.embed, { x: x, y: y, width: entry.wPt, height: entry.hPt });
   }
@@ -1018,14 +1052,7 @@
         var srcPage = await srcDoc.getPage(needed[i] - 1);
         var rot = srcPage.getRotation ? (srcPage.getRotation().angle % 360) : 0;
         if (rot !== 0) throw { code: 'VECTOR_ROTATION' };
-        var sz = srcPage.getSize();
-        var fit = C.fitPage(sz.width, sz.height, box.w, box.h);
-        cache[needed[i]] = {
-          type: 'page',
-          embed: await out.embedPage(srcPage),
-          wPt: fit.wmm * 72 / 25.4,
-          hPt: fit.hmm * 72 / 25.4
-        };
+        cache[needed[i]] = await pageEntry(out, srcPage, box.w, box.h);
       }
     }
     sheets.forEach(function (s) {
@@ -1113,7 +1140,7 @@
       printBlobUrl(res.url, function () { showFileError(t('print.pdfBlocked')); });
       recordPrinted(kind, res.pages, state.vol);
     } catch (e) {
-      if (e && (e.code === 'VECTOR_ROTATION' || e.code === 'VECTOR_LOAD' || e.code === 'VECTOR_UNAVAILABLE')) {
+      if (e && (e.code === 'VECTOR_ROTATION' || e.code === 'VECTOR_LOAD' || e.code === 'VECTOR_UNAVAILABLE' || e.code === 'VECTOR_CROPBOX')) {
         showFileError(t('print.pdfFallback'));
         fallback = true;
       } else {
@@ -1234,6 +1261,11 @@
     });
 
     $('safeNum').addEventListener('change', onGutterChange);
+    $('safeChk').addEventListener('change', function () {
+      if (this.checked) $('safeNum').value = String(state.safeLast || 4);
+      $('safeNum').disabled = !this.checked;
+      onGutterChange();
+    });
 
     $('langSel').addEventListener('change', function () { setLang(this.value); });
 
@@ -1355,6 +1387,10 @@
         }
         $('printRoot').innerHTML = '';
         document.body.classList.remove('printing');
+        state.printing = false;
+        state.busy = false;
+        hideBusy();
+        renderSteps();
       },
       countPdfPages: async function (b64) {
         var bin = atob(b64);

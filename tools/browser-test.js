@@ -190,6 +190,17 @@ async function setFile(selector, filePath) {
     approx(padInfo.pad / padInfo.w * 100, 4 / 142.5 * 100, 'preview shows the safety margin inset', 0.6);
     await ev('window.booklet.setConfig({safe:4})', true);
 
+    /* safety margin can be switched off */
+    await ev('(function(){var c=document.getElementById("safeChk");c.checked=false;c.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    const safeOff = await evj('JSON.stringify({safe:window.booklet.getState().cfg.safe,disabled:document.getElementById("safeNum").disabled})');
+    eq(safeOff.safe, 0, 'safety margin switch off -> 0mm');
+    eq(safeOff.disabled, true, 'margin number disabled when switched off');
+    const offDom = await evj('window.booklet.buildPrintDom("front").then(function(){var im=document.querySelector("#printRoot .print-sheet:nth-child(2) img");return JSON.stringify([parseFloat(im.style.left),parseFloat(im.style.top),parseFloat(im.style.width)]);})');
+    approx(offDom[0], 0, 'margin off: page back at the paper edge', 0.6);
+    await ev('(function(){var c=document.getElementById("safeChk");c.checked=true;c.dispatchEvent(new Event("change",{bubbles:true}));})()');
+    const safeOn = await evj('JSON.stringify({safe:window.booklet.getState().cfg.safe,disabled:document.getElementById("safeNum").disabled})');
+    eq([safeOn.safe, safeOn.disabled], [4, false], 'safety margin switch back on restores 4mm');
+
     /* ---------- 5. real print channel ---------- */
     const frontPdf = await printPdf();
     fs.writeFileSync(path.join(os.tmpdir(), 'booklet-out-front.pdf'), Buffer.from(frontPdf, 'base64'));
@@ -319,6 +330,22 @@ async function setFile(selector, filePath) {
     const rdom = await evj('window.booklet.buildPrintDom("front").then(function(){return JSON.stringify({sheets:document.querySelectorAll("#printRoot .print-sheet").length,style:document.getElementById("pageStyle").textContent})})', true);
     eq(rdom.sheets, 2, 'raster mode still works');
     await ev('window.booklet.cleanupPrint()');
+
+    /* ---------- 8b2. CropBox pages: vector rejects, print falls back to rendered ---------- */
+    const cropB64 = fs.readFileSync(path.join(dir, 'fixtures', 'box-crop.pdf')).toString('base64');
+    const normBoxB64 = fs.readFileSync(path.join(dir, 'fixtures', 'box-normal.pdf')).toString('base64');
+    await ev('window.booklet.loadBase64(' + JSON.stringify(cropB64) + ',"box-crop.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:1,paper:"A4",gutter:6,safe:4})', true);
+    const cropCode = await ev('window.booklet.buildVectorPdf("front").then(function(){return "ok"}).catch(function(e){return (e&&e.code)||"err"})', true);
+    eq(cropCode, 'VECTOR_CROPBOX', 'CropBox page rejected by vector mode');
+    await ev('document.getElementById("btnFront").click()');
+    ok(await waitFor('document.querySelectorAll("#printRoot .print-sheet").length===1', 30000), 'CropBox page: print auto-falls back to the rendered pass');
+    ok(!(await ev('document.getElementById("fileErr").classList.contains("hidden")')), 'fallback message shown for CropBox page');
+    await ev('window.booklet.cleanupPrint()');
+    await ev('window.booklet.loadBase64(' + JSON.stringify(normBoxB64) + ',"box-normal.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:1})', true);
+    const normCode = await ev('window.booklet.buildVectorPdf("front").then(function(r){return "ok:"+r.pages}).catch(function(e){return "err:"+((e&&e.code)||"")})', true);
+    eq(normCode, 'ok:1', 'normal page still uses vector mode');
 
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);

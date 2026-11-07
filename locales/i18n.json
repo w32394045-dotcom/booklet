@@ -83,7 +83,7 @@
       "print.pdfOpen": "打开 PDF",
       "print.pdfDownload": "下载 PDF",
       "print.pdfBlocked": "浏览器没有打开打印对话框：请点下面的「打开 PDF」，在查看器里按 Ctrl+P。",
-      "print.pdfFallback": "这个 PDF 含有旋转页或结构特殊，这一遍已自动改用渲染打印。",
+      "print.pdfFallback": "这个 PDF 有旋转页、裁切框或不寻常结构，本遍已自动改用渲染打印。",
       "set.coverFront": "封面",
       "set.coverBack": "封底",
       "set.coverPick": "选择图片或 PDF",
@@ -100,7 +100,8 @@
       "print.jacketPage": "封面方案是「首页当封面」：不需要第 3 遍护封。",
       "print.blankJacket": "空白护封：第 3 遍会打一张空白纸，折好包在正文外即可。",
       "set.safe": "打印机安全边距",
-      "set.safeHint": "多数打印机边缘有 3–5mm 打不到。默认 4mm 会把版面整体缩进，避免折好后外侧文字被切；设为 0 会尽量铺满（仅限支持无边距的打印机）。"
+      "set.safeHint": "多数打印机边缘有 3–5mm 打不到。默认 4mm 会把版面整体缩进，避免折好后外侧文字被切；设为 0 会尽量铺满（仅限支持无边距的打印机）。",
+      "set.safeOn": "启用安全边距"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -176,7 +177,7 @@
       "print.pdfOpen": "開啟 PDF",
       "print.pdfDownload": "下載 PDF",
       "print.pdfBlocked": "瀏覽器沒有開啟列印對話框：請點下方的「開啟 PDF」，在檢視器裡按 Ctrl+P。",
-      "print.pdfFallback": "這個 PDF 含旋轉頁或結構特殊，這一遍已自動改用算圖列印。",
+      "print.pdfFallback": "這個 PDF 有旋轉頁、裁切框或不尋常結構，本遍已自動改用渲染列印。",
       "set.coverFront": "封面",
       "set.coverBack": "封底",
       "set.coverPick": "選擇圖片或 PDF",
@@ -193,7 +194,8 @@
       "print.jacketPage": "封面方案為「首頁當封面」：不需要第 3 遍護封。",
       "print.blankJacket": "空白護封：第 3 遍會印一張空白紙，折好包在正文外即可。",
       "set.safe": "印表機安全邊距",
-      "set.safeHint": "多數印表機邊緣有 3–5mm 印不到。預設 4mm 會把版面整體內縮，避免折好後外側文字被切；設為 0 會盡量鋪滿（僅限支援無邊界列印的印表機）。"
+      "set.safeHint": "多數印表機邊緣有 3–5mm 印不到。預設 4mm 會把版面整體內縮，避免折好後外側文字被切；設為 0 會盡量鋪滿（僅限支援無邊界列印的印表機）。",
+      "set.safeOn": "啟用安全邊距"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -269,7 +271,7 @@
       "print.pdfOpen": "PDF を開く",
       "print.pdfDownload": "PDF をダウンロード",
       "print.pdfBlocked": "印刷ダイアログが開きませんでした：下の「PDF を開く」からビューアで Ctrl+P を押してください。",
-      "print.pdfFallback": "この PDF には回転ページまたは特殊な構造があるため、この回のみ描画印刷に切り替えました。",
+      "print.pdfFallback": "この PDF には回転ページ・裁切枠・特殊な構造があるため、この回だけ描画印刷に切り替えました。",
       "set.coverFront": "表紙",
       "set.coverBack": "裏表紙",
       "set.coverPick": "画像または PDF",
@@ -286,7 +288,8 @@
       "print.jacketPage": "カバーは「1ページ目を表紙」です。3回目のカバー印刷は不要です。",
       "print.blankJacket": "白紙カバー：3回目で白紙を1枚印刷し、折って本文の外側に巻きます。",
       "set.safe": "プリンター安全余白",
-      "set.safeHint": "多くのプリンターは端から3〜5mm印刷できません。既定の4mmで版面を内側に縮め、外側の文字切れを防ぎます。0にすると端まで使います（縁なし印刷対応機のみ）。"
+      "set.safeHint": "多くのプリンターは端から3〜5mm印刷できません。既定の4mmで版面を内側に縮め、外側の文字切れを防ぎます。0にすると端まで使います（縁なし印刷対応機のみ）。",
+      "set.safeOn": "安全余白を使う"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -362,7 +365,7 @@
       "print.pdfOpen": "PDF 열기",
       "print.pdfDownload": "PDF 다운로드",
       "print.pdfBlocked": "인쇄 대화상자가 열리지 않았습니다: 아래 \"PDF 열기\"를 눌러 뷰어에서 Ctrl+P를 누르세요.",
-      "print.pdfFallback": "이 PDF에 회전된 페이지나 특수 구조가 있어 이번에는 렌더 인쇄로 전환했습니다.",
+      "print.pdfFallback": "이 PDF에는 회전 페이지, 자르기 상자 또는 특수 구조가 있어 이번에는 렌더링 인쇄로 전환했습니다.",
       "set.coverFront": "앞표지",
       "set.coverBack": "뒷표지",
       "set.coverPick": "이미지 또는 PDF",
@@ -379,7 +382,8 @@
       "print.jacketPage": "표지 방식이 \"첫 페이지를 표지로\"입니다. 3번째 재킷은 필요 없습니다.",
       "print.blankJacket": "빈 재킷: 3번째에서 빈 종이 1장을 인쇄해 접은 뒤 본문 겉에 감싸세요.",
       "set.safe": "프린터 안전 여백",
-      "set.safeHint": "대부분의 프린터는 가장자리 3–5mm를 인쇄할 수 없습니다. 기본 4mm는 판면을 안쪽으로 줄여 바깥쪽 글자 잘림을 막습니다. 0이면 가장자리까지 사용합니다(테두리 없이 인쇄 지원 시)."
+      "set.safeHint": "대부분의 프린터는 가장자리 3–5mm를 인쇄할 수 없습니다. 기본 4mm는 판면을 안쪽으로 줄여 바깥쪽 글자 잘림을 막습니다. 0이면 가장자리까지 사용합니다(테두리 없이 인쇄 지원 시).",
+      "set.safeOn": "안전 여백 사용"
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -455,7 +459,7 @@
       "print.pdfOpen": "PDF öffnen",
       "print.pdfDownload": "PDF herunterladen",
       "print.pdfBlocked": "Der Druckdialog wurde nicht geöffnet: unten „PDF öffnen“ und im Viewer Ctrl+P drücken.",
-      "print.pdfFallback": "Diese PDF enthält gedrehte Seiten oder eine besondere Struktur; für diesen Durchgang wurde auf Rendering-Druck umgeschaltet.",
+      "print.pdfFallback": "Dieses PDF hat gedrehte Seiten, eine Zuschnittbox oder eine ungewöhnliche Struktur; dieser Durchgang nutzt den gerenderten Druck.",
       "set.coverFront": "Vorderes Cover",
       "set.coverBack": "Hinteres Cover",
       "set.coverPick": "Bild oder PDF",
@@ -472,7 +476,8 @@
       "print.jacketPage": "Cover-Schema „Seite 1 als Cover“: Durchgang 3 ist nicht nötig.",
       "print.blankJacket": "Leeres Umschlagblatt: Durchgang 3 druckt ein leeres Blatt, das um den Inhalt gelegt wird.",
       "set.safe": "Sicherheitsrand",
-      "set.safeHint": "Viele Drucker bedrucken die äußeren 3–5 mm nicht. 4 mm verkleinert das Layout und verhindert abgeschnittene Zeichen; 0 nutzt die Seite bis zum Rand (nur randlos-fähige Drucker)."
+      "set.safeHint": "Viele Drucker bedrucken die äußeren 3–5 mm nicht. 4 mm verkleinert das Layout und verhindert abgeschnittene Zeichen; 0 nutzt die Seite bis zum Rand (nur randlos-fähige Drucker).",
+      "set.safeOn": "Sicherheitsrand"
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -548,7 +553,7 @@
       "print.pdfOpen": "Ouvrir le PDF",
       "print.pdfDownload": "Télécharger le PDF",
       "print.pdfBlocked": "La boîte d'impression ne s'est pas ouverte : utilisez « Ouvrir le PDF » ci-dessous puis Ctrl+P dans le lecteur.",
-      "print.pdfFallback": "Ce PDF contient des pages pivotées ou une structure particulière ; ce passage utilise l'impression par rendu.",
+      "print.pdfFallback": "Ce PDF contient des pages pivotées, une zone de rognage ou une structure inhabituelle : cette passe utilise l'impression rendue.",
       "set.coverFront": "Couverture avant",
       "set.coverBack": "Couverture arrière",
       "set.coverPick": "Image ou PDF",
@@ -565,7 +570,8 @@
       "print.jacketPage": "Schéma « page 1 en couverture » : la 3e passe n'est pas nécessaire.",
       "print.blankJacket": "Jaquette blanche : la 3e passe imprime une feuille blanche à replier autour du contenu.",
       "set.safe": "Marge de sécurité",
-      "set.safeHint": "La plupart des imprimantes n'impriment pas les 3–5 mm extérieurs. 4 mm réduit la mise en page pour éviter tout texte coupé ; 0 utilise toute la page (imprimante sans bordure uniquement)."
+      "set.safeHint": "La plupart des imprimantes n'impriment pas les 3–5 mm extérieurs. 4 mm réduit la mise en page pour éviter tout texte coupé ; 0 utilise toute la page (imprimante sans bordure uniquement).",
+      "set.safeOn": "Marge de sécurité"
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -641,7 +647,7 @@
       "print.pdfOpen": "Open PDF",
       "print.pdfDownload": "Download PDF",
       "print.pdfBlocked": "The print dialog did not open: use “Open PDF” below and press Ctrl+P in the viewer.",
-      "print.pdfFallback": "This PDF has rotated pages or an unusual structure, so this pass switched to rendered printing.",
+      "print.pdfFallback": "This PDF has rotated pages, a crop box, or an unusual structure, so this pass switched to rendered printing.",
       "set.coverFront": "Front cover",
       "set.coverBack": "Back cover",
       "set.coverPick": "Image or PDF",
@@ -658,7 +664,8 @@
       "print.jacketPage": "Cover scheme “page 1 as cover”: pass 3 is not needed.",
       "print.blankJacket": "Blank jacket: pass 3 prints one blank sheet to fold around the content.",
       "set.safe": "Printer safety margin",
-      "set.safeHint": "Most printers can't print the outer 3–5 mm. 4 mm shrinks the layout so text is not clipped at the outer edge; 0 uses the full page (borderless printers only)."
+      "set.safeHint": "Most printers can't print the outer 3–5 mm. 4 mm shrinks the layout so text is not clipped at the outer edge; 0 uses the full page (borderless printers only).",
+      "set.safeOn": "Safety margin"
     }
   }
 }
