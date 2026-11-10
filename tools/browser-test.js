@@ -363,6 +363,29 @@ async function setFile(selector, filePath) {
     const normCode = await ev('window.booklet.buildVectorPdf("front").then(function(r){return "ok:"+r.pages}).catch(function(e){return "err:"+((e&&e.code)||"")})', true);
     eq(normCode, 'ok:1', 'normal page still uses vector mode');
 
+    /* ---------- 8b3. fold line (center line) ---------- */
+    await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"raster",rangeFrom:1,rangeTo:10,foldLine:true})', true);
+    const foldDom = await evj('window.booklet.buildPrintDom("front").then(function(){return JSON.stringify({sheets:document.querySelectorAll("#printRoot .print-sheet").length,folds:document.querySelectorAll("#printRoot .print-fold").length})})');
+    eq([foldDom.sheets, foldDom.folds], [3, 3], 'fold line drawn on every printed sheet');
+    await ev('window.booklet.cleanupPrint()');
+    await ev('window.booklet.setConfig({foldLine:false})', true);
+    const noFold = await evj('window.booklet.buildPrintDom("front").then(function(){return JSON.stringify(document.querySelectorAll("#printRoot .print-fold").length)})');
+    eq(noFold, 0, 'fold line can be turned off');
+    await ev('window.booklet.cleanupPrint()');
+
+    async function strokeOps() {
+      const vec = await evj('window.booklet.buildVectorPdf("front").then(JSON.stringify)');
+      return ev('(async function(){var b=atob(' + JSON.stringify(vec.base64) + '),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);var d=await window.pdfjsLib.getDocument({data:a,isEvalSupported:false,useSystemFonts:true,disableAutoFetch:true,disableStream:true}).promise;var p=await d.getPage(1);var ops=await p.getOperatorList();var OPS=window.pdfjsLib.OPS;var n=0;for(var j=0;j<ops.fnArray.length;j++){if(ops.fnArray[j]===OPS.stroke)n++;}d.destroy();return n;})()', true);
+    }
+    await ev('window.booklet.setConfig({printMode:"vector",foldLine:true})', true);
+    const strokesOn = await strokeOps();
+    ok(strokesOn > 0, 'vector sheets contain the center line stroke', strokesOn);
+    await ev('window.booklet.setConfig({foldLine:false})', true);
+    const strokesOff = await strokeOps();
+    eq(strokesOff, 0, 'vector fold line can be turned off');
+    await ev('window.booklet.setConfig({foldLine:true})', true);
+
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);

@@ -106,7 +106,10 @@
       "set.mTop": "上",
       "set.mRight": "右",
       "set.mBottom": "下",
-      "set.mLeft": "左"
+      "set.mLeft": "左",
+      "set.foldLine": "折线",
+      "set.foldLineOn": "打印折线（中线）",
+      "set.foldLineHint": "沿纸张正中打一条浅灰虚线，方便对折；折好后基本藏在折缝里。不想显示可关闭。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -205,7 +208,10 @@
       "set.mTop": "上",
       "set.mRight": "右",
       "set.mBottom": "下",
-      "set.mLeft": "左"
+      "set.mLeft": "左",
+      "set.foldLine": "摺線",
+      "set.foldLineOn": "列印摺線（中線）",
+      "set.foldLineHint": "沿紙張正中印一條淺灰虛線，方便對摺；摺好後大致藏在摺縫裡。不想顯示可關閉。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -304,7 +310,10 @@
       "set.mTop": "上",
       "set.mRight": "右",
       "set.mBottom": "下",
-      "set.mLeft": "左"
+      "set.mLeft": "左",
+      "set.foldLine": "折り線",
+      "set.foldLineOn": "折り線（中心線）を印刷",
+      "set.foldLineHint": "用紙の中央に薄いグレーの破線を印刷し、二つ折りしやすくします。折ると折り目に隠れます。不要ならオフに。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -403,7 +412,10 @@
       "set.mTop": "위",
       "set.mRight": "오른쪽",
       "set.mBottom": "아래",
-      "set.mLeft": "왼쪽"
+      "set.mLeft": "왼쪽",
+      "set.foldLine": "접기 선",
+      "set.foldLineOn": "접기 선(중앙선) 인쇄",
+      "set.foldLineHint": "종이 중앙에 연한 회색 점선을 인쇄해 반으로 접기 쉽게 합니다. 접으면 접힌 선에 거의 가려집니다. 필요 없으면 끄세요."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -502,7 +514,10 @@
       "set.mTop": "Oben",
       "set.mRight": "Rechts",
       "set.mBottom": "Unten",
-      "set.mLeft": "Links"
+      "set.mLeft": "Links",
+      "set.foldLine": "Falzlinie",
+      "set.foldLineOn": "Falzlinie (Mitte) drucken",
+      "set.foldLineHint": "Druckt eine hellgraue gestrichelte Linie in der Blattmitte, damit das Falten leichter fällt. Nach dem Falten liegt sie in der Falz. Abschaltbar."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -601,7 +616,10 @@
       "set.mTop": "Haut",
       "set.mRight": "Droite",
       "set.mBottom": "Bas",
-      "set.mLeft": "Gauche"
+      "set.mLeft": "Gauche",
+      "set.foldLine": "Ligne de pli",
+      "set.foldLineOn": "Imprimer la ligne de pli (centre)",
+      "set.foldLineHint": "Imprime un fin pointillé gris au centre de la feuille pour faciliter le pliage ; il se retrouve dans le pli. Désactivable."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -700,7 +718,10 @@
       "set.mTop": "Top",
       "set.mRight": "Right",
       "set.mBottom": "Bottom",
-      "set.mLeft": "Left"
+      "set.mLeft": "Left",
+      "set.foldLine": "Fold line",
+      "set.foldLineOn": "Print fold line (center)",
+      "set.foldLineHint": "Prints a light grey dashed line down the sheet center to make folding easy; it ends up inside the fold. Turn off if you do not want it."
     }
   }
 }

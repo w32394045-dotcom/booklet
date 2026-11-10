@@ -158,7 +158,8 @@
       autoSplit: $('splitChk').checked,
       maxSheets: parseInt($('maxSheets').value, 10),
       rangeFrom: parseInt($('rangeFrom').value, 10),
-      rangeTo: parseInt($('rangeTo').value, 10)
+      rangeTo: parseInt($('rangeTo').value, 10),
+      foldLine: $('foldChk').checked
     }, state.pageCount);
   }
 
@@ -180,6 +181,7 @@
     $('reverseChk').checked = cfg.reverse;
     $('splitChk').checked = cfg.autoSplit;
     $('maxSheets').value = String(cfg.maxSheets);
+    $('foldChk').checked = cfg.foldLine;
     $('rangeFrom').value = String(cfg.rangeFrom);
     $('rangeTo').value = state.pageCount ? String(cfg.rangeTo) : '';
     $('rangeFrom').max = String(state.pageCount || 1);
@@ -991,6 +993,11 @@
       sheet.style.height = sh.h + 'mm';
       addPanel(sheet, s.left, job.rects.left, job.cache);
       addPanel(sheet, s.right, job.rects.right, job.cache);
+      if (state.cfg.foldLine) {
+        var fold = document.createElement('div');
+        fold.className = 'print-fold';
+        sheet.appendChild(fold);
+      }
       root.appendChild(sheet);
     });
     $('pageStyle').textContent = '@page{size:' + sh.w + 'mm ' + sh.h + 'mm;margin:0}';
@@ -1150,6 +1157,15 @@
       var page = out.addPage([W, H]);
       placeEntry(page, cache[s.left], rects.left);
       placeEntry(page, cache[s.right], rects.right);
+      if (state.cfg.foldLine) {
+        page.drawLine({
+          start: { x: W / 2, y: 0 },
+          end: { x: W / 2, y: H },
+          thickness: mmToPt(0.2),
+          color: PL.rgb(0.62, 0.62, 0.62),
+          dashArray: [mmToPt(2), mmToPt(2)]
+        });
+      }
     });
     var bytes = await out.save();
     var url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
@@ -1365,6 +1381,7 @@
       }
       onGutterChange();
     });
+    $('foldChk').addEventListener('change', onGutterChange);
 
     $('langSel').addEventListener('change', function () { setLang(this.value); });
 

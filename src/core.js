@@ -25,7 +25,8 @@
     rangeFrom: 1,
     rangeTo: 0,
     printMode: 'vector',
-    coverMode: 'page'
+    coverMode: 'page',
+    foldLine: true
   };
 
   var COVER_MODES = ['page', 'custom', 'blank'];
@@ -70,7 +71,8 @@
       rangeFrom: Math.max(1, intOr(src.rangeFrom, 1)),
       rangeTo: Math.max(0, intOr(src.rangeTo, 0)),
       printMode: src.printMode === 'raster' ? 'raster' : DEFAULTS.printMode,
-      coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode
+      coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode,
+      foldLine: boolOr(src.foldLine, DEFAULTS.foldLine)
     };
     if (pageCount > 0) {
       cfg.rangeFrom = clamp(cfg.rangeFrom, 1, pageCount);
