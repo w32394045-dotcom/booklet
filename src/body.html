@@ -87,6 +87,15 @@
           <div class="hint" data-i18n="set.foldLineHint"></div>
         </div>
         <div class="field">
+          <label data-i18n="set.colorFilter">Color content</label>
+          <select id="cfSel">
+            <option value="off" data-i18n="set.cfOff">all</option>
+            <option value="mono" data-i18n="set.cfMono">black only</option>
+            <option value="color" data-i18n="set.cfColor">color only</option>
+          </select>
+          <div class="hint" data-i18n="set.cfHint"></div>
+        </div>
+        <div class="field">
           <label data-i18n="set.flip">Duplex flip</label>
           <div class="check-row">
             <label class="check"><input id="mirrorChk" type="checkbox"> <span data-i18n="set.mirror"></span></label>
@@ -192,6 +201,7 @@
       <div id="pdfLinks" class="pdflinks hidden"></div>
       <div id="qualityHint" class="tip2 hidden"></div>
       <div class="tip2" id="modeHint" data-i18n="print.modeHint"></div>
+      <div class="tip2 hidden" id="cfPrintHint" data-i18n="print.cfHint"></div>
       <div class="tip"><strong data-i18n="print.tipTitle"></strong><span data-i18n="print.tip"></span></div>
       <div class="tip2" data-i18n="print.tip2"></div>
       <div class="tip2" id="jacketHint" data-i18n="print.jacketHint"></div>

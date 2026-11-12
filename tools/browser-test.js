@@ -386,6 +386,62 @@ async function setFile(selector, filePath) {
     eq(strokesOff, 0, 'vector fold line can be turned off');
     await ev('window.booklet.setConfig({foldLine:true})', true);
 
+    /* ---------- 8b4. color content filter (black-only / color-only) ---------- */
+    const colorB64 = fs.readFileSync(path.join(dir, 'fixtures', 'color4.pdf')).toString('base64');
+    await ev('window.booklet.loadBase64(' + JSON.stringify(colorB64) + ',"color4.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"raster",rangeFrom:1,rangeTo:4,paper:"A4",gutter:0,safe:false,mTop:0,mRight:0,mBottom:0,mLeft:0,foldLine:false,colorFilter:"off",dpi:300})', true);
+    await ev(`window.__sampleImg = async function(sel){
+      var img = document.querySelector(sel);
+      if (!img) return {ok:false};
+      try { await img.decode(); } catch (e) {}
+      var cv = document.createElement('canvas');
+      cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+      var ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      var d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+      var red = 0, dark = 0;
+      for (var i = 0; i < d.length; i += 4) {
+        var r = d[i], g = d[i+1], b = d[i+2];
+        if (r > 170 && g < 90 && b < 90) red++;
+        if (r < 80 && g < 80 && b < 80) dark++;
+      }
+      return {ok:true, w:cv.width, h:cv.height, red:red, dark:dark};
+    };`, true);
+    const sampleImg = async (sel) => evj('window.__sampleImg(' + JSON.stringify(sel) + ').then(JSON.stringify)');
+    await ev('window.booklet.cleanupPrint()');
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    const cfOff = await sampleImg('#printRoot img');
+    ok(cfOff.ok && cfOff.red > 100 && cfOff.dark > 20, 'no filter keeps both color and black content', JSON.stringify(cfOff));
+
+    await ev('window.booklet.setConfig({colorFilter:"mono"})', true);
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    const cfMono = await sampleImg('#printRoot img');
+    eq(cfMono.ok ? cfMono.red : -1, 0, 'black-only filter drops all color pixels');
+    ok(cfMono.dark > 20, 'black-only filter keeps the black content', JSON.stringify(cfMono));
+    const cfUi = await evj('JSON.stringify({vecDisabled:document.querySelector("#modeBar .modebtn[data-mode=vector]").disabled,rasterOn:document.querySelector("#modeBar .modebtn[data-mode=raster]").classList.contains("on"),dpiHidden:document.getElementById("dpiField").classList.contains("hidden"),hintHidden:document.getElementById("cfPrintHint").classList.contains("hidden"),sel:document.getElementById("cfSel").value,cfg:window.booklet.getState().cfg.colorFilter})');
+    eq([cfUi.vecDisabled, cfUi.rasterOn, cfUi.dpiHidden, cfUi.hintHidden, cfUi.sel, cfUi.cfg],
+      [true, true, false, false, 'mono', 'mono'], 'filter UI: vector disabled, rendered mode shown, hint visible');
+    ok(await waitFor('document.querySelectorAll("#prevFront img[src]").length>=2', 20000), 'previews re-render after the filter change');
+    await sleep(300);
+    const thumbMono = await sampleImg('#prevFront img');
+    ok(thumbMono.ok, 'filtered preview thumbnail sampled', JSON.stringify(thumbMono));
+    eq(thumbMono.ok ? thumbMono.red : -1, 0, 'filtered preview thumbnails match the print filter');
+
+    await ev('window.booklet.setConfig({colorFilter:"color"})', true);
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    const cfColor = await sampleImg('#printRoot img');
+    ok(cfColor.ok && cfColor.red > 100 && cfColor.dark === 0, 'color-only filter keeps color, drops black', JSON.stringify(cfColor));
+
+    await ev('window.booklet.cleanupPrint()');
+    await ev('window.booklet.setConfig({printMode:"vector",colorFilter:"mono"})', true);
+    await ev('document.getElementById("btnFront").click()');
+    ok(await waitFor('document.querySelectorAll("#printRoot .print-sheet").length===1', 30000), 'vector mode + color filter auto-falls back to rendered printing');
+    await sleep(300);
+    const cfFallback = await sampleImg('#printRoot img');
+    ok(cfFallback.ok && cfFallback.red === 0 && cfFallback.dark > 20, 'fallback print applies the same filter', JSON.stringify(cfFallback));
+    await ev('window.booklet.cleanupPrint()');
+    await ev('window.booklet.setConfig({colorFilter:"off"})', true);
+
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);

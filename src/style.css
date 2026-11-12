@@ -129,6 +129,8 @@ h1{margin:0;font-size:21px;letter-spacing:.2px}
 .modebtn{padding:6px 12px;border:1px solid var(--line);background:#fff;border-radius:9px;font-size:12.5px;cursor:pointer;color:#41506b}
 .modebtn:hover{border-color:var(--blue);color:var(--blue)}
 .modebtn.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+.modebtn:disabled{opacity:.45;cursor:not-allowed}
+.modebtn:disabled:hover{border-color:var(--line);color:#41506b}
 .pdflinks{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 .pdflink{display:inline-block;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--blue);text-decoration:none;font-size:13px;font-weight:600}
 .pdflink:hover{border-color:var(--blue)}

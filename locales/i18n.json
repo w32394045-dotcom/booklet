@@ -109,7 +109,13 @@
       "set.mLeft": "左",
       "set.foldLine": "折线",
       "set.foldLineOn": "打印折线（中线）",
-      "set.foldLineHint": "沿纸张正中打一条浅灰虚线，方便对折；折好后基本藏在折缝里。不想显示可关闭。"
+      "set.foldLineHint": "沿纸张正中打一条浅灰虚线，方便对折；折好后基本藏在折缝里。不想显示可关闭。",
+      "set.colorFilter": "颜色筛选",
+      "set.cfOff": "不筛选（全部内容）",
+      "set.cfMono": "只印黑白内容（彩色跳过）",
+      "set.cfColor": "只印彩色内容（黑白跳过）",
+      "set.cfHint": "按像素筛选：只保留所选颜色的内容，其余留白。开启后自动改用渲染打印（清晰度取上面的 DPI 设置）；矢量打印会关闭。",
+      "print.cfHint": "颜色筛选已开启：这一遍使用渲染打印，只输出所选颜色的内容。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -211,7 +217,13 @@
       "set.mLeft": "左",
       "set.foldLine": "摺線",
       "set.foldLineOn": "列印摺線（中線）",
-      "set.foldLineHint": "沿紙張正中印一條淺灰虛線，方便對摺；摺好後大致藏在摺縫裡。不想顯示可關閉。"
+      "set.foldLineHint": "沿紙張正中印一條淺灰虛線，方便對摺；摺好後大致藏在摺縫裡。不想顯示可關閉。",
+      "set.colorFilter": "顏色篩選",
+      "set.cfOff": "不篩選（全部內容）",
+      "set.cfMono": "只印黑白內容（彩色跳過）",
+      "set.cfColor": "只印彩色內容（黑白跳過）",
+      "set.cfHint": "依像素篩選：只保留所選顏色的內容，其餘留白。開啟後自動改用渲染列印（清晰度取上方的 DPI 設定）；向量列印會關閉。",
+      "print.cfHint": "顏色篩選已開啟：這一遍使用渲染列印，只輸出所選顏色的內容。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -313,7 +325,13 @@
       "set.mLeft": "左",
       "set.foldLine": "折り線",
       "set.foldLineOn": "折り線（中心線）を印刷",
-      "set.foldLineHint": "用紙の中央に薄いグレーの破線を印刷し、二つ折りしやすくします。折ると折り目に隠れます。不要ならオフに。"
+      "set.foldLineHint": "用紙の中央に薄いグレーの破線を印刷し、二つ折りしやすくします。折ると折り目に隠れます。不要ならオフに。",
+      "set.colorFilter": "色フィルター",
+      "set.cfOff": "フィルターなし（すべて）",
+      "set.cfMono": "白黒の内容のみ印刷（カラーをスキップ）",
+      "set.cfColor": "カラーの内容のみ印刷（白黒をスキップ）",
+      "set.cfHint": "ピクセル単位で選別し、選んだ色の内容だけを残して残りは白にします。オンにすると自動でレンダリング印刷になります（解像度は上の DPI）。ベクター印刷は使えません。",
+      "print.cfHint": "色フィルターが有効です：この印刷はレンダリング印刷で、選んだ色の内容だけを出力します。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -415,7 +433,13 @@
       "set.mLeft": "왼쪽",
       "set.foldLine": "접기 선",
       "set.foldLineOn": "접기 선(중앙선) 인쇄",
-      "set.foldLineHint": "종이 중앙에 연한 회색 점선을 인쇄해 반으로 접기 쉽게 합니다. 접으면 접힌 선에 거의 가려집니다. 필요 없으면 끄세요."
+      "set.foldLineHint": "종이 중앙에 연한 회색 점선을 인쇄해 반으로 접기 쉽게 합니다. 접으면 접힌 선에 거의 가려집니다. 필요 없으면 끄세요.",
+      "set.colorFilter": "색상 필터",
+      "set.cfOff": "필터 없음(전체 내용)",
+      "set.cfMono": "흑백 내용만 인쇄(컬러 제외)",
+      "set.cfColor": "컬러 내용만 인쇄(흑백 제외)",
+      "set.cfHint": "픽셀 단위로 걸러 선택한 색의 내용만 남기고 나머지는 흰색으로 둡니다. 켜면 자동으로 렌더링 인쇄를 사용합니다(해상도는 위 DPI). 벡터 인쇄는 사용할 수 없습니다.",
+      "print.cfHint": "색상 필터가 켜져 있어 이번 인쇄는 렌더링 인쇄로 선택한 색의 내용만 출력합니다."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -517,7 +541,13 @@
       "set.mLeft": "Links",
       "set.foldLine": "Falzlinie",
       "set.foldLineOn": "Falzlinie (Mitte) drucken",
-      "set.foldLineHint": "Druckt eine hellgraue gestrichelte Linie in der Blattmitte, damit das Falten leichter fällt. Nach dem Falten liegt sie in der Falz. Abschaltbar."
+      "set.foldLineHint": "Druckt eine hellgraue gestrichelte Linie in der Blattmitte, damit das Falten leichter fällt. Nach dem Falten liegt sie in der Falz. Abschaltbar.",
+      "set.colorFilter": "Farbfilter",
+      "set.cfOff": "Kein Filter (alles)",
+      "set.cfMono": "Nur Schwarzweiß drucken (Farbe überspringen)",
+      "set.cfColor": "Nur Farbe drucken (Schwarzweiß überspringen)",
+      "set.cfHint": "Filtert pixelweise: Nur der Inhalt der gewählten Farbe bleibt, der Rest wird weiß. Aktiviert automatisch den gerenderten Druck (Auflösung über DPI oben); Vektordruck ist dann nicht verfügbar.",
+      "print.cfHint": "Farbfilter aktiv: Dieser Durchgang nutzt den gerenderten Druck und gibt nur den Inhalt der gewählten Farbe aus."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -619,7 +649,13 @@
       "set.mLeft": "Gauche",
       "set.foldLine": "Ligne de pli",
       "set.foldLineOn": "Imprimer la ligne de pli (centre)",
-      "set.foldLineHint": "Imprime un fin pointillé gris au centre de la feuille pour faciliter le pliage ; il se retrouve dans le pli. Désactivable."
+      "set.foldLineHint": "Imprime un fin pointillé gris au centre de la feuille pour faciliter le pliage ; il se retrouve dans le pli. Désactivable.",
+      "set.colorFilter": "Filtre de couleurs",
+      "set.cfOff": "Aucun filtre (tout)",
+      "set.cfMono": "Noir et blanc uniquement (ignorer la couleur)",
+      "set.cfColor": "Couleur uniquement (ignorer le noir et blanc)",
+      "set.cfHint": "Filtrage pixel par pixel : seul le contenu de la couleur choisie reste, le reste devient blanc. Active automatiquement l'impression rendue (résolution via DPI ci-dessus) ; l'impression vectorielle n'est plus disponible.",
+      "print.cfHint": "Filtre de couleurs actif : cette passe utilise l'impression rendue et ne sort que le contenu de la couleur choisie."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -721,7 +757,13 @@
       "set.mLeft": "Left",
       "set.foldLine": "Fold line",
       "set.foldLineOn": "Print fold line (center)",
-      "set.foldLineHint": "Prints a light grey dashed line down the sheet center to make folding easy; it ends up inside the fold. Turn off if you do not want it."
+      "set.foldLineHint": "Prints a light grey dashed line down the sheet center to make folding easy; it ends up inside the fold. Turn off if you do not want it.",
+      "set.colorFilter": "Color filter",
+      "set.cfOff": "No filter (all content)",
+      "set.cfMono": "Black / grey content only (skip color)",
+      "set.cfColor": "Color content only (skip black / grey)",
+      "set.cfHint": "Pixel filter: keep only the selected content, the rest prints white. Turning it on switches to rendered printing (resolution from the DPI setting above); vector printing is unavailable then.",
+      "print.cfHint": "Color filter is on: this pass uses rendered printing and outputs only the selected color content."
     }
   }
 }

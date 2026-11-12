@@ -26,6 +26,7 @@
     stats: { front: 0, back: 0, jacket: 0, sheets: 0 },
     thumbs: {},
     thumbSig: '',
+    thumbFilter: '',
     thumbToken: 0,
     thumbError: '',
     previewSig: '',
@@ -159,7 +160,8 @@
       maxSheets: parseInt($('maxSheets').value, 10),
       rangeFrom: parseInt($('rangeFrom').value, 10),
       rangeTo: parseInt($('rangeTo').value, 10),
-      foldLine: $('foldChk').checked
+      foldLine: $('foldChk').checked,
+      colorFilter: $('cfSel').value
     }, state.pageCount);
   }
 
@@ -182,6 +184,7 @@
     $('splitChk').checked = cfg.autoSplit;
     $('maxSheets').value = String(cfg.maxSheets);
     $('foldChk').checked = cfg.foldLine;
+    $('cfSel').value = cfg.colorFilter || 'off';
     $('rangeFrom').value = String(cfg.rangeFrom);
     $('rangeTo').value = state.pageCount ? String(cfg.rangeTo) : '';
     $('rangeFrom').max = String(state.pageCount || 1);
@@ -201,6 +204,14 @@
     if (m.t || m.r || m.b || m.l) state.marginLast = m;
     save(LS_CFG, state.cfg);
     updatePreviewStyle();
+  }
+
+  /* Color filter changes the rendered pixels: previews and the print cache must be rebuilt. */
+  function onFilterChange() {
+    state.cfg = cfgFromInputs();
+    save(LS_CFG, state.cfg);
+    renderSteps();
+    maybeThumbs();
   }
 
   function recalc() {
@@ -499,7 +510,9 @@
 
   function renderSteps() {
     var done = state.done[state.vol] || {};
-    var vector = !(state.cfg && state.cfg.printMode === 'raster');
+    var filtered = !!(state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off');
+    /* A color filter works on rendered pixels, so it always uses the raster pass. */
+    var vector = !(state.cfg && state.cfg.printMode === 'raster') && !filtered;
     [['Front', 'front'], ['Back', 'back'], ['Jacket', 'jacket']].forEach(function (pair) {
       var step = $('step' + pair[0]);
       var btn = $('btn' + pair[0]);
@@ -520,9 +533,13 @@
     if (bar) {
       var btns = bar.querySelectorAll('.modebtn');
       for (var i = 0; i < btns.length; i++) {
+        var isVectorBtn = btns[i].getAttribute('data-mode') === 'vector';
         btns[i].classList.toggle('on', btns[i].getAttribute('data-mode') === (vector ? 'vector' : 'raster'));
+        btns[i].disabled = filtered && isVectorBtn;
       }
     }
+    var cfHint = $('cfPrintHint');
+    if (cfHint) cfHint.classList.toggle('hidden', !filtered);
     var hint = $('volHint');
     if (hint) {
       hint.textContent = (state.plan && state.pdf)
@@ -571,6 +588,27 @@
     });
   }
 
+  /* Color filter: keep only neutral (black/grey) or only colored pixels, everything else
+     prints white. Used by the optional "black content only / color content only" mode. */
+  function applyColorFilter(ctx, w, h) {
+    var mode = state.cfg && state.cfg.colorFilter;
+    if (mode !== 'mono' && mode !== 'color') return;
+    var img;
+    try { img = ctx.getImageData(0, 0, w, h); } catch (e) { return; }
+    var d = img.data;
+    var mono = mode === 'mono';
+    for (var i = 0; i < d.length; i += 4) {
+      var r = d[i], g = d[i + 1], b = d[i + 2];
+      var mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+      var mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+      var colored = (mx - mn) >= 12;
+      if (mono === colored) {
+        d[i] = 255; d[i + 1] = 255; d[i + 2] = 255; d[i + 3] = 255;
+      }
+    }
+    try { ctx.putImageData(img, 0, 0); } catch (e) {}
+  }
+
   async function renderPage(doc, pageNo, opt) {
     var page = await doc.getPage(pageNo);
     var base = page.getViewport({ scale: 1 });
@@ -589,6 +627,7 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, cv.width, cv.height);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    applyColorFilter(ctx, cv.width, cv.height);
     var blob = await new Promise(function (res) {
       cv.toBlob(function (b) { res(b); }, 'image/jpeg', 0.92);
     });
@@ -616,6 +655,13 @@
   async function ensureThumbs() {
     if (!state.pdf || !state.plan) return;
     var pages = currentVolumePages();
+    /* Thumbnails are rendered pixels, so a color-filter change invalidates all of them. */
+    var cf = (state.cfg && state.cfg.colorFilter) || 'off';
+    if (cf !== state.thumbFilter) {
+      state.thumbFilter = cf;
+      state.thumbSig = '';
+      clearThumbs();
+    }
     var sig = state.pageCount + ':' + state.plan.from + ':' + state.plan.to + ':' + state.vol + ':' + pages.length;
     if (sig === state.thumbSig) return;
     var missing = pages.filter(function (p) { return !state.thumbs[p]; });
@@ -679,6 +725,7 @@
     state.done = {};
     state.vol = 0;
     state.thumbSig = '';
+    state.thumbFilter = '';
     state.thumbError = '';
     state.previewSig = '';
     state.quality = null;
@@ -1183,6 +1230,8 @@
 
   function setPrintMode(mode) {
     if (mode !== 'vector' && mode !== 'raster') return;
+    /* The color filter works on rendered pixels, so vector printing is unavailable while it is on. */
+    if (mode === 'vector' && state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off') return;
     state.cfg.printMode = mode;
     save(LS_CFG, state.cfg);
     renderSteps();
@@ -1301,7 +1350,8 @@
   /* ---------------- events / boot ---------------- */
 
   async function doPrint(kind) {
-    if (state.cfg && state.cfg.printMode === 'raster') return doPrintRaster(kind);
+    var filtered = !!(state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off');
+    if (state.cfg && (state.cfg.printMode === 'raster' || filtered)) return doPrintRaster(kind);
     return doPrintVector(kind);
   }
 
@@ -1382,6 +1432,7 @@
       onGutterChange();
     });
     $('foldChk').addEventListener('change', onGutterChange);
+    $('cfSel').addEventListener('change', onFilterChange);
 
     $('langSel').addEventListener('change', function () { setLang(this.value); });
 

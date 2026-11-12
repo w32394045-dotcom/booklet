@@ -26,10 +26,12 @@
     rangeTo: 0,
     printMode: 'vector',
     coverMode: 'page',
-    foldLine: true
+    foldLine: true,
+    colorFilter: 'off'
   };
 
   var COVER_MODES = ['page', 'custom', 'blank'];
+  var COLOR_FILTERS = ['off', 'mono', 'color'];
 
   var DPI_LIST = [200, 300, 400, 600];
 
@@ -72,7 +74,8 @@
       rangeTo: Math.max(0, intOr(src.rangeTo, 0)),
       printMode: src.printMode === 'raster' ? 'raster' : DEFAULTS.printMode,
       coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode,
-      foldLine: boolOr(src.foldLine, DEFAULTS.foldLine)
+      foldLine: boolOr(src.foldLine, DEFAULTS.foldLine),
+      colorFilter: COLOR_FILTERS.indexOf(src.colorFilter) >= 0 ? src.colorFilter : DEFAULTS.colorFilter
     };
     if (pageCount > 0) {
       cfg.rangeFrom = clamp(cfg.rangeFrom, 1, pageCount);
@@ -226,6 +229,7 @@
     DEFAULTS: DEFAULTS,
     DPI_LIST: DPI_LIST,
     COVER_MODES: COVER_MODES,
+    COLOR_FILTERS: COLOR_FILTERS,
     num: num,
     clamp: clamp,
     sanitizeCfg: sanitizeCfg,
