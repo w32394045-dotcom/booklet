@@ -399,13 +399,14 @@ async function setFile(selector, filePath) {
       var ctx = cv.getContext('2d');
       ctx.drawImage(img, 0, 0);
       var d = ctx.getImageData(0, 0, cv.width, cv.height).data;
-      var red = 0, dark = 0;
+      var red = 0, blue = 0, dark = 0;
       for (var i = 0; i < d.length; i += 4) {
         var r = d[i], g = d[i+1], b = d[i+2];
         if (r > 170 && g < 90 && b < 90) red++;
+        if (b > 170 && r < 90 && g < 90) blue++;
         if (r < 80 && g < 80 && b < 80) dark++;
       }
-      return {ok:true, w:cv.width, h:cv.height, red:red, dark:dark};
+      return {ok:true, w:cv.width, h:cv.height, red:red, blue:blue, dark:dark};
     };`, true);
     const sampleImg = async (sel) => evj('window.__sampleImg(' + JSON.stringify(sel) + ').then(JSON.stringify)');
     await ev('window.booklet.cleanupPrint()');
@@ -441,6 +442,40 @@ async function setFile(selector, filePath) {
     ok(cfFallback.ok && cfFallback.red === 0 && cfFallback.dark > 20, 'fallback print applies the same filter', JSON.stringify(cfFallback));
     await ev('window.booklet.cleanupPrint()');
     await ev('window.booklet.setConfig({colorFilter:"off"})', true);
+
+    /* ---------- 8b5. page-level skip modes (whole page goes blank) ---------- */
+    const mixedB64 = fs.readFileSync(path.join(dir, 'fixtures', 'mixed4.pdf')).toString('base64');
+    await ev('window.booklet.loadBase64(' + JSON.stringify(mixedB64) + ',"mixed4.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"raster",rangeFrom:1,rangeTo:4,paper:"A4",gutter:0,safe:false,mTop:0,mRight:0,mBottom:0,mLeft:0,foldLine:false,dpi:150,colorFilter:"monoPage"})', true);
+    await ev('window.booklet.cleanupPrint()');
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    const skipUi = await evj('JSON.stringify({imgs:document.querySelectorAll("#printRoot img").length,skipHintHidden:document.getElementById("cfSkipHint").classList.contains("hidden"),pixelHintHidden:document.getElementById("cfPrintHint").classList.contains("hidden"),detectHidden:document.getElementById("cfDetect").classList.contains("hidden"),detect:document.getElementById("cfDetect").textContent,vecDisabled:document.querySelector("#modeBar .modebtn[data-mode=vector]").disabled})');
+    eq(skipUi.imgs, 1, 'mono-page mode: the color page 4 stays blank on the front sheet');
+    eq([skipUi.skipHintHidden, skipUi.pixelHintHidden, skipUi.detectHidden, skipUi.vecDisabled], [false, true, false, false], 'page-skip UI: skip hint shown, vector still available');
+    ok(/2, 4/.test(skipUi.detect) && /1, 3/.test(skipUi.detect), 'detection summary lists color pages and b/w pages', skipUi.detect);
+    await evj('window.booklet.buildPrintDom("back").then(JSON.stringify)');
+    eq(await ev('document.querySelectorAll("#printRoot img").length'), 1, 'mono-page mode: the color page 2 stays blank on the back sheet');
+    ok(await waitFor('document.querySelectorAll("#prevFront img[src]").length===1', 20000), 'preview leaves the skipped page blank');
+    await ev('window.booklet.cleanupPrint()');
+
+    await ev('window.booklet.setConfig({colorFilter:"colorPage"})', true);
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    eq(await ev('document.querySelectorAll("#printRoot img").length'), 1, 'color-page mode: the b/w page 1 stays blank on the front sheet');
+    const cpSample = await sampleImg('#printRoot img');
+    ok(cpSample.ok && cpSample.blue > 100, 'color-page mode keeps the color page as-is', JSON.stringify(cpSample));
+    await ev('window.booklet.cleanupPrint()');
+
+    /* page-skip keeps the vector engine: only skipped pages are left blank */
+    await ev('window.booklet.setConfig({printMode:"vector",colorFilter:"monoPage"})', true);
+    const vSkip = await evj('window.booklet.buildVectorPdf("front").then(JSON.stringify)');
+    eq(vSkip.pages, 1, 'vector print still works with a page-skip mode');
+    const vSkipText = await evj('window.booklet.analyzePdf(' + JSON.stringify(vSkip.base64) + ').then(JSON.stringify)');
+    ok(vSkipText.text.indexOf('BLACK PAGE 1') >= 0 && vSkipText.text.indexOf('BLACK PAGE 4') < 0, 'vector sheet embeds the kept page and blanks the skipped one', vSkipText.text.slice(0, 100));
+    await ev('document.getElementById("pdfLinks").innerHTML="";document.getElementById("btnFront").click()');
+    ok(await waitFor('document.querySelectorAll("#pdfLinks a").length>=2', 30000), 'page-skip mode uses the vector print path, not rendered printing');
+    eq(await ev('document.querySelectorAll("#printRoot .print-sheet").length'), 0, 'page-skip mode never switches to rendered printing');
+    await ev('document.querySelectorAll("iframe[title=booklet-print]").forEach(function(n){try{n.remove()}catch(e){}});window.booklet.cleanupPrint()');
+    await ev('window.booklet.setConfig({colorFilter:"off",printMode:"vector"})', true);
 
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);

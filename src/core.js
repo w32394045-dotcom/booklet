@@ -31,7 +31,9 @@
   };
 
   var COVER_MODES = ['page', 'custom', 'blank'];
-  var COLOR_FILTERS = ['off', 'mono', 'color'];
+  /* Pixel filters: recolor the rendered page. Page filters: detect a page's content and
+     skip the whole page (it prints blank). */
+  var COLOR_FILTERS = ['off', 'mono', 'color', 'monoPage', 'colorPage'];
 
   var DPI_LIST = [200, 300, 400, 600];
 

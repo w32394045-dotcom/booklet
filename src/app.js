@@ -32,6 +32,9 @@
     previewSig: '',
     previewJobs: null,
     marginLast: { t: 4, r: 4, b: 4, l: 4 },
+    colorPages: {},
+    colorToken: 0,
+    colorScanPromise: null,
     quality: null,
     busy: false,
     printing: false,
@@ -135,6 +138,8 @@
     try { localStorage.setItem(LS_LANG, code); } catch (e) {}
     applyI18n();
     renderPreviews();
+    renderSteps();
+    renderCfDetect();
   }
 
   /* ---------------- config inputs ---------------- */
@@ -206,11 +211,13 @@
     updatePreviewStyle();
   }
 
-  /* Color filter changes the rendered pixels: previews and the print cache must be rebuilt. */
+  /* Color filter changes the rendered pixels / skipped pages: previews and print cache rebuild. */
   function onFilterChange() {
     state.cfg = cfgFromInputs();
     save(LS_CFG, state.cfg);
     renderSteps();
+    renderCfDetect();
+    if (state.pdf && isPageSkipFilter()) ensurePageColors(currentVolumePages());
     maybeThumbs();
   }
 
@@ -222,6 +229,7 @@
       renderPlanBar();
       renderPreviews();
       renderSteps();
+      renderCfDetect();
       updateCoverModeUi();
       return;
     }
@@ -235,8 +243,10 @@
     renderVolChips();
     renderPreviews();
     renderSteps();
+    renderCfDetect();
     updateCoverModeUi();
     maybeThumbs();
+    if (state.pdf && isPageSkipFilter()) ensurePageColors(currentVolumePages());
   }
 
   function renderRangeInfo() {
@@ -510,9 +520,11 @@
 
   function renderSteps() {
     var done = state.done[state.vol] || {};
-    var filtered = !!(state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off');
-    /* A color filter works on rendered pixels, so it always uses the raster pass. */
-    var vector = !(state.cfg && state.cfg.printMode === 'raster') && !filtered;
+    var pixelFilter = isPixelFilter();
+    var pageSkip = isPageSkipFilter();
+    /* Pixel filters work on rendered pixels, so they always use the raster pass.
+       Page-skip modes only blank whole pages and keep the chosen print engine. */
+    var vector = !(state.cfg && state.cfg.printMode === 'raster') && !pixelFilter;
     [['Front', 'front'], ['Back', 'back'], ['Jacket', 'jacket']].forEach(function (pair) {
       var step = $('step' + pair[0]);
       var btn = $('btn' + pair[0]);
@@ -535,11 +547,15 @@
       for (var i = 0; i < btns.length; i++) {
         var isVectorBtn = btns[i].getAttribute('data-mode') === 'vector';
         btns[i].classList.toggle('on', btns[i].getAttribute('data-mode') === (vector ? 'vector' : 'raster'));
-        btns[i].disabled = filtered && isVectorBtn;
+        btns[i].disabled = pixelFilter && isVectorBtn;
       }
     }
     var cfHint = $('cfPrintHint');
-    if (cfHint) cfHint.classList.toggle('hidden', !filtered);
+    if (cfHint) cfHint.classList.toggle('hidden', !pixelFilter);
+    var skipHint = $('cfSkipHint');
+    if (skipHint) skipHint.classList.toggle('hidden', !pageSkip);
+    var cfDetect = $('cfDetect');
+    if (cfDetect) cfDetect.classList.toggle('hidden', !pageSkip || !state.pdf);
     var hint = $('volHint');
     if (hint) {
       hint.textContent = (state.plan && state.pdf)
@@ -609,6 +625,128 @@
     try { ctx.putImageData(img, 0, 0); } catch (e) {}
   }
 
+  /* ---------------- color modes ---------------- */
+
+  function colorFilterMode() {
+    return (state.cfg && state.cfg.colorFilter) || 'off';
+  }
+
+  /* Pixel modes recolor the rendered page; page modes skip a whole page based on detection. */
+  function isPixelFilter() {
+    var m = colorFilterMode();
+    return m === 'mono' || m === 'color';
+  }
+  function isPageSkipFilter() {
+    var m = colorFilterMode();
+    return m === 'monoPage' || m === 'colorPage';
+  }
+  function isPageSkipped(pageNo) {
+    var m = colorFilterMode();
+    if (m !== 'monoPage' && m !== 'colorPage') return false;
+    var has = state.colorPages[pageNo];
+    if (has == null) return false;
+    return m === 'monoPage' ? has : !has;
+  }
+
+  /* Vector color operators are exact; image content is judged from a small render where
+     saturated pixels must form a real area (so JPEG edge noise on B/W scans is ignored). */
+  async function detectPageColor(pageNo) {
+    var page = await state.pdf.getPage(pageNo);
+    try {
+      var OPS = window.pdfjsLib.OPS || {};
+      var ops = await page.getOperatorList();
+      for (var i = 0; i < ops.fnArray.length; i++) {
+        var fn = ops.fnArray[i];
+        if (fn !== OPS.setFillRGBColor && fn !== OPS.setStrokeRGBColor) continue;
+        var a = ops.argsArray[i];
+        if (!a || a.length < 3) continue;
+        var cr = +a[0], cg = +a[1], cb = +a[2];
+        if (Math.max(cr, cg, cb) - Math.min(cr, cg, cb) >= 16) return true;
+      }
+      var vp = page.getViewport({ scale: 1 });
+      var cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(vp.width));
+      cv.height = Math.max(1, Math.round(vp.height));
+      var ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+      var d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+      var strong = 0;
+      for (var j = 0; j < d.length; j += 4) {
+        var r = d[j], g = d[j + 1], b = d[j + 2];
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        if (mx - mn >= 30 && (mx - mn) * 5 >= mx) strong++;
+      }
+      var total = cv.width * cv.height;
+      cv.width = cv.height = 0;
+      return strong >= Math.max(120, total * 0.0005);
+    } finally {
+      try { page.cleanup(); } catch (e) {}
+    }
+  }
+
+  /* Detect color presence for every page that still needs it (cached per page number). */
+  async function ensurePageColors(pages) {
+    if (!state.pdf || !pages || !pages.length || !isPageSkipFilter()) return;
+    var guard = 0;
+    while (guard++ < 8) {
+      var missing = pages.filter(function (p) {
+        return state.colorPages[p] == null && p >= 1 && p <= state.pageCount;
+      });
+      if (!missing.length) break;
+      if (state.colorScanPromise) { await state.colorScanPromise; continue; }
+      var token = ++state.colorToken;
+      state.colorScanPromise = (async function () {
+        for (var i = 0; i < missing.length; i++) {
+          if (state.colorToken !== token) return;
+          var p = missing[i];
+          try { state.colorPages[p] = await detectPageColor(p); }
+          catch (e) { state.colorPages[p] = false; }
+          renderCfDetect();
+        }
+      })();
+      await state.colorScanPromise;
+      state.colorScanPromise = null;
+      pruneSkippedThumbs();
+    }
+    renderCfDetect();
+  }
+
+  function renderCfDetect() {
+    var el = $('cfDetect');
+    if (!el) return;
+    if (!isPageSkipFilter() || !state.pdf || !state.plan) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    var pages = currentVolumePages();
+    var colorPages = [];
+    var monoPages = [];
+    var unknown = 0;
+    pages.forEach(function (p) {
+      var v = state.colorPages[p];
+      if (v == null) unknown++;
+      else if (v) colorPages.push(p);
+      else monoPages.push(p);
+    });
+    if (unknown) el.textContent = t('set.cfDetecting');
+    else el.textContent = t('set.cfDetect', colorPages.join(', ') || '—', monoPages.join(', ') || '—');
+  }
+
+  function pruneSkippedThumbs() {
+    var changed = false;
+    Object.keys(state.thumbs).forEach(function (k) {
+      if (isPageSkipped(+k)) {
+        revokeUrl(state.thumbs[k]);
+        delete state.thumbs[k];
+        changed = true;
+      }
+    });
+    if (changed) {
+      state.thumbSig = '';
+      syncPreviewImages();
+    }
+  }
+
   async function renderPage(doc, pageNo, opt) {
     var page = await doc.getPage(pageNo);
     var base = page.getViewport({ scale: 1 });
@@ -664,7 +802,7 @@
     }
     var sig = state.pageCount + ':' + state.plan.from + ':' + state.plan.to + ':' + state.vol + ':' + pages.length;
     if (sig === state.thumbSig) return;
-    var missing = pages.filter(function (p) { return !state.thumbs[p]; });
+    var missing = pages.filter(function (p) { return !state.thumbs[p] && !isPageSkipped(p); });
     if (!missing.length) { state.thumbSig = sig; syncPreviewImages(); return; }
     state.thumbSig = sig;
     var token = ++state.thumbToken;
@@ -679,7 +817,9 @@
           try {
             var info = await renderThumb(state.pdf, pageNo);
             if (token !== state.thumbToken) { revokeUrl(info.url); return; }
-            state.thumbs[pageNo] = info.url;
+            /* Detection may have classified this page as skipped while it rendered. */
+            if (isPageSkipped(pageNo)) { revokeUrl(info.url); }
+            else state.thumbs[pageNo] = info.url;
             syncPreviewImages();
           } catch (e) {
             state.thumbError = String((e && e.message) || e);
@@ -727,6 +867,9 @@
     state.thumbSig = '';
     state.thumbFilter = '';
     state.thumbError = '';
+    state.colorPages = {};
+    state.colorToken++;
+    state.colorScanPromise = null;
     state.previewSig = '';
     state.quality = null;
     clearThumbs();
@@ -983,6 +1126,7 @@
       });
     });
     needed.sort(function (a, b) { return a - b; });
+    if (isPageSkipFilter()) await ensurePageColors(needed);
     var cache = {};
     var cursor = 0;
     var doneCount = 0;
@@ -992,8 +1136,8 @@
     async function lane() {
       while (cursor < needed.length) {
         var pageNo = needed[cursor++];
-        var info = await renderPage(state.pdf, pageNo, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: dpi });
-        cache[pageNo] = info;
+        var info = isPageSkipped(pageNo) ? null : await renderPage(state.pdf, pageNo, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: dpi });
+        if (info) cache[pageNo] = info;
         doneCount++;
         $('busyText').textContent = t('print.busy') + ' ' + doneCount + '/' + needed.length;
       }
@@ -1192,7 +1336,9 @@
         });
       });
       needed.sort(function (a, b) { return a - b; });
+      if (isPageSkipFilter()) await ensurePageColors(needed);
       for (var i = 0; i < needed.length; i++) {
+        if (isPageSkipped(needed[i])) continue;
         if (i % 6 === 0) { showBusy(t('print.busy') + ' ' + (i + 1) + '/' + needed.length); await yieldUI(); }
         var srcPage = await srcDoc.getPage(needed[i] - 1);
         var rot = srcPage.getRotation ? (srcPage.getRotation().angle % 360) : 0;
@@ -1230,8 +1376,8 @@
 
   function setPrintMode(mode) {
     if (mode !== 'vector' && mode !== 'raster') return;
-    /* The color filter works on rendered pixels, so vector printing is unavailable while it is on. */
-    if (mode === 'vector' && state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off') return;
+    /* Pixel filters work on rendered pixels, so vector printing is unavailable while one is on. */
+    if (mode === 'vector' && state.cfg && isPixelFilter()) return;
     state.cfg.printMode = mode;
     save(LS_CFG, state.cfg);
     renderSteps();
@@ -1350,8 +1496,7 @@
   /* ---------------- events / boot ---------------- */
 
   async function doPrint(kind) {
-    var filtered = !!(state.cfg && state.cfg.colorFilter && state.cfg.colorFilter !== 'off');
-    if (state.cfg && (state.cfg.printMode === 'raster' || filtered)) return doPrintRaster(kind);
+    if (state.cfg && (state.cfg.printMode === 'raster' || isPixelFilter())) return doPrintRaster(kind);
     return doPrintVector(kind);
   }
 

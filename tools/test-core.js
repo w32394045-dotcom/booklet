@@ -63,8 +63,10 @@ eq(C.sanitizeCfg({ foldLine: 'true' }, 0).foldLine, true, 'fold line string bool
 eq(C.sanitizeCfg(null, 0).colorFilter, 'off', 'default color filter off');
 eq(C.sanitizeCfg({ colorFilter: 'mono' }, 0).colorFilter, 'mono', 'color filter mono');
 eq(C.sanitizeCfg({ colorFilter: 'color' }, 0).colorFilter, 'color', 'color filter color only');
+eq(C.sanitizeCfg({ colorFilter: 'monoPage' }, 0).colorFilter, 'monoPage', 'color filter mono pages');
+eq(C.sanitizeCfg({ colorFilter: 'colorPage' }, 0).colorFilter, 'colorPage', 'color filter color pages');
 eq(C.sanitizeCfg({ colorFilter: 'weird' }, 0).colorFilter, 'off', 'color filter fallback');
-eq(C.COLOR_FILTERS, ['off', 'mono', 'color'], 'color filter modes list');
+eq(C.COLOR_FILTERS, ['off', 'mono', 'color', 'monoPage', 'colorPage'], 'color filter modes list');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).mirror, true, 'string bool true');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).reverse, true, 'string 1 bool');
 eq(C.sanitizeCfg({ autoSplit: 'false' }, 0).autoSplit, false, 'string false bool');

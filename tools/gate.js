@@ -67,7 +67,7 @@ has('"print.pdfFallback"');
  'id="coverGrid"', 'id="coverHintCustom"', 'id="coverErr"',
  'id="gutterRange"', 'id="gutterNum"', 'id="safeChk"', 'id="mTop"', 'id="mRight"', 'id="mBottom"', 'id="mLeft"', 'id="foldChk"', 'id="mirrorChk"',
  'id="reverseChk"', 'id="splitChk"', 'id="maxSheets"', 'id="rangeFrom"', 'id="rangeTo"',
- 'id="cfSel"', 'id="cfPrintHint"',
+ 'id="cfSel"', 'id="cfDetect"', 'id="cfPrintHint"', 'id="cfSkipHint"',
  'id="btnFront"', 'id="btnBack"', 'id="btnJacket"', 'id="volChips"', 'id="prevFront"',
  'id="prevBack"', 'id="prevJacket"', 'id="jacketPane"', 'id="statText"', 'id="statReset"', 'id="langSel"',
  'id="busy"', 'id="drop"', 'id="modeBar"', 'id="dpiField"', 'id="pdfLinks"', 'id="qualityHint"'].forEach((h) => has(h));
@@ -94,8 +94,11 @@ has('"set.foldLineHint"');
 has('"set.colorFilter"');
 has('"set.cfMono"');
 has('"set.cfColor"');
+has('"set.cfMonoPage"');
+has('"set.cfColorPage"');
 has('"set.cfHint"');
 has('"print.cfHint"');
+has('"print.cfSkipHint"');
 has('"set.coverModePage"');
 has('"set.coverModeCustom"');
 has('"set.coverModeBlank"');
@@ -106,6 +109,8 @@ ok(html.indexOf('sourceMappingURL') < 0, 'no sourcemap directives');
 ok(html.indexOf('printBlobUrl') >= 0, 'vector print uses hidden iframe (no new tab)');
 ok(html.indexOf('applyColorFilter') >= 0, 'color content filter present');
 ok(html.indexOf('colorFilter') >= 0, 'color filter config wired');
+ok(html.indexOf('detectPageColor') >= 0, 'page-level color detection present');
+ok(html.indexOf('isPageSkipped') >= 0, 'page-skip modes wired');
 
 /* direct print, no PDF export */
 has('window.print()');
