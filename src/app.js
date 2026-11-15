@@ -166,7 +166,8 @@
       rangeFrom: parseInt($('rangeFrom').value, 10),
       rangeTo: parseInt($('rangeTo').value, 10),
       foldLine: $('foldChk').checked,
-      colorFilter: $('cfSel').value
+      colorFilter: $('cfSel').value,
+      xShift: parseFloat($('xShift').value)
     }, state.pageCount);
   }
 
@@ -190,6 +191,7 @@
     $('maxSheets').value = String(cfg.maxSheets);
     $('foldChk').checked = cfg.foldLine;
     $('cfSel').value = cfg.colorFilter || 'off';
+    $('xShift').value = String(cfg.xShift || 0);
     $('rangeFrom').value = String(cfg.rangeFrom);
     $('rangeTo').value = state.pageCount ? String(cfg.rangeTo) : '';
     $('rangeFrom').max = String(state.pageCount || 1);
@@ -219,6 +221,12 @@
     renderCfDetect();
     if (state.pdf && isPageSkipFilter()) ensurePageColors(currentVolumePages());
     maybeThumbs();
+  }
+
+  /* Print-position calibration only moves ink inside the page; print output rebuilds each pass. */
+  function onPrintOffsetChange() {
+    state.cfg = cfgFromInputs();
+    save(LS_CFG, state.cfg);
   }
 
   function recalc() {
@@ -401,18 +409,27 @@
     };
   }
 
+  /* Fine print-position calibration in mm: moves the whole imposed sheet (content + fold
+     line) sideways. Compensates a printer/driver that places the sheet off paper center. */
+  function xShift() {
+    var cfg = state.cfg || C.DEFAULTS;
+    return C.clamp(C.num(cfg.xShift, 0), -10, 10);
+  }
+
   /* Content rectangle inside each panel: printer margins only on the paper's outer edges,
      the fold side keeps just the gutter. */
   function contentRects() {
     var geo = C.geometry(state.cfg);
     var m = margins();
     var side = Math.max(m.l, m.r);
+    var dx = xShift();
     var w = Math.max(20, geo.left.w - side);
     var h = Math.max(20, geo.sheet.h - m.t - m.b);
     return {
-      left: { x: geo.left.x + side, y: m.b, w: w, h: h },
-      right: { x: geo.right.x, y: m.b, w: w, h: h },
+      left: { x: geo.left.x + side + dx, y: m.b, w: w, h: h },
+      right: { x: geo.right.x + dx, y: m.b, w: w, h: h },
       side: side,
+      shift: dx,
       sheet: geo.sheet
     };
   }
@@ -1187,6 +1204,7 @@
       if (state.cfg.foldLine) {
         var fold = document.createElement('div');
         fold.className = 'print-fold';
+        fold.style.left = 'calc(50% + ' + xShift() + 'mm)';
         sheet.appendChild(fold);
       }
       root.appendChild(sheet);
@@ -1311,6 +1329,7 @@
     var out = await PL.PDFDocument.create();
     var W = mmToPt(geo.sheet.w);
     var H = mmToPt(geo.sheet.h);
+    var dxPt = mmToPt(xShift());
     var cache = {};
     var sheets;
     if (kind === 'jacket') {
@@ -1352,8 +1371,8 @@
       placeEntry(page, cache[s.right], rects.right);
       if (state.cfg.foldLine) {
         page.drawLine({
-          start: { x: W / 2, y: 0 },
-          end: { x: W / 2, y: H },
+          start: { x: W / 2 + dxPt, y: 0 },
+          end: { x: W / 2 + dxPt, y: H },
           thickness: mmToPt(0.2),
           color: PL.rgb(0.62, 0.62, 0.62),
           dashArray: [mmToPt(2), mmToPt(2)]
@@ -1578,6 +1597,7 @@
     });
     $('foldChk').addEventListener('change', onGutterChange);
     $('cfSel').addEventListener('change', onFilterChange);
+    $('xShift').addEventListener('change', onPrintOffsetChange);
 
     $('langSel').addEventListener('change', function () { setLang(this.value); });
 

@@ -120,7 +120,9 @@
       "set.cfColorPage": "只印彩色页（纯黑白的整页跳过）",
       "set.cfDetecting": "正在检测彩色内容…",
       "set.cfDetect": "本范围检测结果 · 彩色页：{0} ／ 纯黑白页：{1}",
-      "print.cfSkipHint": "整页跳过已开启：命中的页整页留白，其余页面照常打印；打印方式不变。"
+      "print.cfSkipHint": "整页跳过已开启：命中的页整页留白，其余页面照常打印；打印方式不变。",
+      "set.xShift": "打印位置校准（左右）",
+      "set.xShiftHint": "整张版面（内容+折线）一起左右平移。打一张正反、对折透光看：背面中线在正面中线右边 m 毫米，就填正数 m/2；在左边填负数 m/2。改完重打一张核对，直到正反中线重合。范围 ±10mm，正数=内容右移。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -233,7 +235,9 @@
       "set.cfColorPage": "只印彩色頁（純黑白的整頁跳過）",
       "set.cfDetecting": "正在偵測彩色內容…",
       "set.cfDetect": "本範圍偵測結果 · 彩色頁：{0} ／ 純黑白頁：{1}",
-      "print.cfSkipHint": "整頁跳過已開啟：命中的頁整頁留白，其餘頁面照常列印；列印方式不變。"
+      "print.cfSkipHint": "整頁跳過已開啟：命中的頁整頁留白，其餘頁面照常列印；列印方式不變。",
+      "set.xShift": "列印位置校正（左右）",
+      "set.xShiftHint": "整張版面（內容+折線）一起左右平移。印一張正反、對摺透光看：背面中線在正面中線右邊 m 公釐，就填正數 m/2；在左邊填負數 m/2。改完重印一張核對，直到正反中線重合。範圍 ±10mm，正數=內容右移。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -346,7 +350,9 @@
       "set.cfColorPage": "カラーページのみ（白黒だけのページは丸ごとスキップ）",
       "set.cfDetecting": "カラー内容を検出中…",
       "set.cfDetect": "この範囲の検出結果 · カラーページ：{0} ／ 白黒ページ：{1}",
-      "print.cfSkipHint": "ページスキップが有効：該当ページは白紙、それ以外は通常どおり印刷します。印刷方式は変わりません。"
+      "print.cfSkipHint": "ページスキップが有効：該当ページは白紙、それ以外は通常どおり印刷します。印刷方式は変わりません。",
+      "set.xShift": "印刷位置補正（左右）",
+      "set.xShiftHint": "面付け全体（内容＋折り線）を左右に平行移動します。1枚を両面印刷して二つ折りし、裏面の中心線が表面より右に m mm なら正の m/2、左なら負の m/2 を入力。再印刷して中心線が重なるまで調整（±10mm、正=右へ移動）。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -459,7 +465,9 @@
       "set.cfColorPage": "컬러 페이지만(흑백만 있는 페이지는 통째로 건너뜀)",
       "set.cfDetecting": "컬러 내용을 확인하는 중…",
       "set.cfDetect": "이 범위 결과 · 컬러 페이지: {0} ／ 흑백 페이지: {1}",
-      "print.cfSkipHint": "페이지 건너뜀이 켜져 있어 해당 페이지는 비우고 나머지는 그대로 인쇄합니다. 인쇄 방식은 그대로입니다."
+      "print.cfSkipHint": "페이지 건너뜀이 켜져 있어 해당 페이지는 비우고 나머지는 그대로 인쇄합니다. 인쇄 방식은 그대로입니다.",
+      "set.xShift": "인쇄 위치 보정(좌우)",
+      "set.xShiftHint": "판면 전체(내용+접지선)를 좌우로 함께 이동합니다. 한 장을 양면 인쇄해 반으로 접었을 때 뒷면 중심선이 앞면보다 오른쪽으로 m mm면 +m/2, 왼쪽이면 −m/2를 입력하세요. 다시 인쇄해 중심선이 겹칠 때까지 맞추면 됩니다(±10mm, 양수=오른쪽 이동)."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -572,7 +580,9 @@
       "set.cfColorPage": "Nur Farbseiten (reine Schwarzweiß-Seiten überspringen)",
       "set.cfDetecting": "Farbinhalt wird geprüft…",
       "set.cfDetect": "Ergebnis dieses Bereichs · Farbseiten: {0} ／ Schwarzweiß-Seiten: {1}",
-      "print.cfSkipHint": "Seitensprung aktiv: betroffene Seiten bleiben leer, die übrigen drucken normal; der Druckweg bleibt gleich."
+      "print.cfSkipHint": "Seitensprung aktiv: betroffene Seiten bleiben leer, die übrigen drucken normal; der Druckweg bleibt gleich.",
+      "set.xShift": "Druckposition korrigieren (X)",
+      "set.xShiftHint": "Verschiebt das gesamte Nutzen (Inhalt + Falzlinie) seitlich. Ein Blatt beidseitig drucken, falten: liegt die Mittellinie der Rückseite m mm rechts der Vorderseite, +m/2 eintragen, links entsprechend −m/2. Nach jedem Wert erneut drucken, bis beide Linien deckungsgleich sind (±10 mm, positiv = nach rechts)."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -685,7 +695,9 @@
       "set.cfColorPage": "Pages couleur uniquement (ignorer les pages noir et blanc)",
       "set.cfDetecting": "Détection de la couleur…",
       "set.cfDetect": "Résultat de cette plage · pages couleur : {0} ／ pages noir et blanc : {1}",
-      "print.cfSkipHint": "Saut de page actif : les pages concernées restent blanches, les autres s'impriment normalement ; le mode d'impression ne change pas."
+      "print.cfSkipHint": "Saut de page actif : les pages concernées restent blanches, les autres s'impriment normalement ; le mode d'impression ne change pas.",
+      "set.xShift": "Correction de position d'impression (X)",
+      "set.xShiftHint": "Décale tout l'imposé (contenu + trait de pliage) horizontalement. Imprimez une feuille en recto-verso puis pliez : si la ligne du verso est m mm à droite du recto, saisissez +m/2 ; à gauche, −m/2. Réimprimez jusqu'à ce que les deux lignes coïncident (±10 mm, positif = vers la droite)."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -798,7 +810,9 @@
       "set.cfColorPage": "Color pages only (skip black / grey-only pages)",
       "set.cfDetecting": "Detecting color content…",
       "set.cfDetect": "This range · color pages: {0} ／ black / grey pages: {1}",
-      "print.cfSkipHint": "Page skipping is on: matching pages stay blank, the rest print normally; the print engine is unchanged."
+      "print.cfSkipHint": "Page skipping is on: matching pages stay blank, the rest print normally; the print engine is unchanged.",
+      "set.xShift": "Print position correction (X)",
+      "set.xShiftHint": "Shifts the whole imposed sheet (content + fold line) sideways. Print one sheet on both sides and fold it: if the back center line is m mm to the right of the front line, enter +m/2; if it is to the left, enter -m/2. Reprint and repeat until both lines coincide. Range ±10 mm, positive = move right."
     }
   }
 }

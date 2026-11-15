@@ -477,6 +477,35 @@ async function setFile(selector, filePath) {
     await ev('document.querySelectorAll("iframe[title=booklet-print]").forEach(function(n){try{n.remove()}catch(e){}});window.booklet.cleanupPrint()');
     await ev('window.booklet.setConfig({colorFilter:"off",printMode:"vector"})', true);
 
+    /* ---------- 8b6. print position calibration (x shift) ---------- */
+    await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:10,paper:"A4",gutter:6,safe:false,mTop:0,mRight:0,mBottom:0,mLeft:0,foldLine:true,xShift:0})', true);
+    async function vectorFoldMm() {
+      const v = await evj('window.booklet.buildVectorPdf("front").then(JSON.stringify)');
+      return ev('(async function(){var b=atob(' + JSON.stringify(v.base64) + '),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);var d=await window.pdfjsLib.getDocument({data:a,isEvalSupported:false,useSystemFonts:true,disableAutoFetch:true,disableStream:true}).promise;var p=await d.getPage(1);var ops=await p.getOperatorList();var OPS=window.pdfjsLib.OPS;var xs=[];for(var j=0;j<ops.fnArray.length;j++){if(ops.fnArray[j]!==OPS.constructPath)continue;var c=Array.from(ops.argsArray[j][1]||[]);for(var q=0;q+3<c.length;q+=2){if(Math.abs(c[q]-c[q+2])<0.01&&Math.abs(c[q+1]-c[q+3])>1)xs.push(c[q]*25.4/72);}}d.destroy();return xs.length?xs[0]:null;})()', true);
+    }
+    approx(await vectorFoldMm(), 148.5, 'vector fold line at sheet center with x shift 0', 0.2);
+    await ev('window.booklet.setConfig({xShift:1})', true);
+    approx(await vectorFoldMm(), 149.5, 'vector fold line follows +1mm calibration', 0.2);
+    eq(await ev('document.getElementById("xShift").value'), '1', 'x shift input synced from config');
+    await ev('window.booklet.setConfig({xShift:-2})', true);
+    approx(await vectorFoldMm(), 146.5, 'vector fold line follows -2mm calibration', 0.2);
+
+    eq(await ev('window.booklet.getState().cfg.xShift'), -2, 'x shift kept in config');
+    await ev('window.booklet.setConfig({printMode:"raster",xShift:0})', true);
+    await send('Emulation.setEmulatedMedia', { media: 'print' });
+    await ev('window.booklet.buildPrintDom("front").then(function(){return 0})', true);
+    const shiftZero = await evj('JSON.stringify((function(){var s=document.querySelector("#printRoot .print-sheet");var f=document.querySelector("#printRoot .print-fold");var i=document.querySelector("#printRoot img");var sr=s.getBoundingClientRect();return {fold:(f.getBoundingClientRect().left-sr.left)*25.4/96,img:(i.getBoundingClientRect().left-sr.left)*25.4/96};})())');
+    ok(Math.abs(shiftZero.fold - 148.5) < 0.3, 'raster fold line at sheet center with x shift 0', JSON.stringify(shiftZero));
+    await ev('window.booklet.setConfig({xShift:1})', true);
+    await ev('window.booklet.buildPrintDom("front").then(function(){return 0})', true);
+    const shiftOne = await evj('JSON.stringify((function(){var s=document.querySelector("#printRoot .print-sheet");var f=document.querySelector("#printRoot .print-fold");var i=document.querySelector("#printRoot img");var sr=s.getBoundingClientRect();return {fold:(f.getBoundingClientRect().left-sr.left)*25.4/96,img:(i.getBoundingClientRect().left-sr.left)*25.4/96};})())');
+    approx(shiftOne.fold, 149.5, 'raster fold line follows x shift', 0.3);
+    approx(shiftOne.img - shiftZero.img, 1, 'raster page content moves with x shift', 0.15);
+    await ev('window.booklet.cleanupPrint()');
+    await send('Emulation.setEmulatedMedia', { media: 'screen' });
+    await ev('window.booklet.setConfig({xShift:0,printMode:"vector"})', true);
+
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);

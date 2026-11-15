@@ -27,7 +27,8 @@
     printMode: 'vector',
     coverMode: 'page',
     foldLine: true,
-    colorFilter: 'off'
+    colorFilter: 'off',
+    xShift: 0
   };
 
   var COVER_MODES = ['page', 'custom', 'blank'];
@@ -77,7 +78,8 @@
       printMode: src.printMode === 'raster' ? 'raster' : DEFAULTS.printMode,
       coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode,
       foldLine: boolOr(src.foldLine, DEFAULTS.foldLine),
-      colorFilter: COLOR_FILTERS.indexOf(src.colorFilter) >= 0 ? src.colorFilter : DEFAULTS.colorFilter
+      colorFilter: COLOR_FILTERS.indexOf(src.colorFilter) >= 0 ? src.colorFilter : DEFAULTS.colorFilter,
+      xShift: clamp(num(src.xShift, DEFAULTS.xShift), -10, 10)
     };
     if (pageCount > 0) {
       cfg.rangeFrom = clamp(cfg.rangeFrom, 1, pageCount);

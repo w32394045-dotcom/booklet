@@ -96,7 +96,7 @@ if (pdflib.indexOf('PDFLib') < 0) fail('pdf-lib global missing');
  ['id="dpiField"', body], ['id="pdfLinks"', body], ['id="qualityHint"', body],
  ['id="btnFront"', body], ['id="btnBack"', body], ['id="btnJacket"', body], ['id="gutterRange"', body],
  ['id="safeChk"', body], ['id="mTop"', body], ['id="mRight"', body], ['id="mBottom"', body], ['id="mLeft"', body], ['id="foldChk"', body],
- ['id="cfSel"', body], ['id="cfDetect"', body], ['id="cfPrintHint"', body], ['id="cfSkipHint"', body],
+ ['id="xShift"', body], ['id="cfSel"', body], ['id="cfDetect"', body], ['id="cfPrintHint"', body], ['id="cfSkipHint"', body],
  ['id="coverFrontInput"', body], ['id="coverBackInput"', body], ['id="coverFrontClear"', body],
  ['id="coverBackClear"', body], ['id="coverFrontPrev"', body], ['id="coverBackPrev"', body],
  ['id="coverModeBar"', body], ['id="coverGrid"', body], ['id="coverHintCustom"', body],

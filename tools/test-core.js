@@ -67,6 +67,12 @@ eq(C.sanitizeCfg({ colorFilter: 'monoPage' }, 0).colorFilter, 'monoPage', 'color
 eq(C.sanitizeCfg({ colorFilter: 'colorPage' }, 0).colorFilter, 'colorPage', 'color filter color pages');
 eq(C.sanitizeCfg({ colorFilter: 'weird' }, 0).colorFilter, 'off', 'color filter fallback');
 eq(C.COLOR_FILTERS, ['off', 'mono', 'color', 'monoPage', 'colorPage'], 'color filter modes list');
+eq(C.sanitizeCfg(null, 0).xShift, 0, 'default print x shift 0');
+eq(C.sanitizeCfg({ xShift: '1.5' }, 0).xShift, 1.5, 'print x shift decimal');
+eq(C.sanitizeCfg({ xShift: -3 }, 0).xShift, -3, 'print x shift negative');
+eq(C.sanitizeCfg({ xShift: 99 }, 0).xShift, 10, 'print x shift clamp high');
+eq(C.sanitizeCfg({ xShift: -99 }, 0).xShift, -10, 'print x shift clamp low');
+eq(C.sanitizeCfg({ xShift: 'abc' }, 0).xShift, 0, 'print x shift fallback');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).mirror, true, 'string bool true');
 eq(C.sanitizeCfg({ mirror: 'true', reverse: '1', autoSplit: 'false' }, 0).reverse, true, 'string 1 bool');
 eq(C.sanitizeCfg({ autoSplit: 'false' }, 0).autoSplit, false, 'string false bool');
