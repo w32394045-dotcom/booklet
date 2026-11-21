@@ -68,6 +68,8 @@ has('"print.pdfFallback"');
  'id="gutterRange"', 'id="gutterNum"', 'id="safeChk"', 'id="mTop"', 'id="mRight"', 'id="mBottom"', 'id="mLeft"', 'id="foldChk"', 'id="mirrorChk"',
  'id="reverseChk"', 'id="splitChk"', 'id="maxSheets"', 'id="rangeFrom"', 'id="rangeTo"',
  'id="cfSel"', 'id="cfDetect"', 'id="cfPrintHint"', 'id="cfSkipHint"', 'id="xShift"',
+ 'id="losslessField"', 'id="losslessChk"', 'id="largeFileHint"', 'id="dlBar"',
+ 'id="dlFront"', 'id="dlBack"', 'id="dlJacket"', 'id="dlAll"',
  'id="btnFront"', 'id="btnBack"', 'id="btnJacket"', 'id="volChips"', 'id="prevFront"',
  'id="prevBack"', 'id="prevJacket"', 'id="jacketPane"', 'id="statText"', 'id="statReset"', 'id="langSel"',
  'id="busy"', 'id="drop"', 'id="modeBar"', 'id="dpiField"', 'id="pdfLinks"', 'id="qualityHint"'].forEach((h) => has(h));
@@ -93,6 +95,18 @@ has('"set.foldLineOn"');
 has('"set.foldLineHint"');
 has('"set.xShift"');
 has('"set.xShiftHint"');
+has('"set.lossless"');
+has('"set.losslessOn"');
+has('"set.losslessHint"');
+has('"print.largeFile"');
+has('"print.vectorLarge"');
+has('"prev.thumbPending"');
+has('"print.dlTitle"');
+has('"print.dlFront"');
+has('"print.dlBack"');
+has('"print.dlJacket"');
+has('"print.dlAll"');
+has('"print.dlHint"');
 has('"set.colorFilter"');
 has('"set.cfMono"');
 has('"set.cfColor"');
@@ -114,6 +128,10 @@ ok(html.indexOf('colorFilter') >= 0, 'color filter config wired');
 ok(html.indexOf('xShift') >= 0, 'print position calibration wired');
 ok(html.indexOf('detectPageColor') >= 0, 'page-level color detection present');
 ok(html.indexOf('isPageSkipped') >= 0, 'page-skip modes wired');
+ok(html.indexOf('PDFDataRangeTransport') >= 0, 'large PDFs read by byte ranges');
+ok(html.indexOf('openPdfFile') >= 0, 'lazy file loading wired');
+ok(html.indexOf('downloadPass') >= 0, 'separate front/back PDF downloads wired');
+ok(html.indexOf('lastPrintImageType') >= 0 && html.indexOf('image/png') >= 0, 'lossless PNG output wired');
 
 /* direct print, no PDF export */
 has('window.print()');

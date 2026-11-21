@@ -122,7 +122,19 @@
       "set.cfDetect": "本范围检测结果 · 彩色页：{0} ／ 纯黑白页：{1}",
       "print.cfSkipHint": "整页跳过已开启：命中的页整页留白，其余页面照常打印；打印方式不变。",
       "set.xShift": "打印位置校准（左右）",
-      "set.xShiftHint": "整张版面（内容+折线）一起左右平移。打一张正反、对折透光看：背面中线在正面中线右边 m 毫米，就填正数 m/2；在左边填负数 m/2。改完重打一张核对，直到正反中线重合。范围 ±10mm，正数=内容右移。"
+      "set.xShiftHint": "整张版面（内容+折线）一起左右平移。打一张正反、对折透光看：背面中线在正面中线右边 m 毫米，就填正数 m/2；在左边填负数 m/2。改完重打一张核对，直到正反中线重合。范围 ±10mm，正数=内容右移。",
+      "set.lossless": "输出质量",
+      "set.losslessOn": "无损输出（PNG）",
+      "set.losslessHint": "渲染打印默认用 JPEG（0.92）压缩；勾选后改用 PNG 无损输出（像素筛选同理）。矢量 PDF 本来就是原样嵌入、不受影响。PNG 更大更占内存，大文件或 600DPI 不建议开。",
+      "print.largeFile": "大文件模式：这个文件比较大，已自动改用渲染打印（矢量 PDF 对超大文件不可用）；缩略图改为滚动到哪生成哪，避免卡住。打印流程不变。",
+      "print.vectorLarge": "文件太大，矢量 PDF 模式不可用，已自动改用渲染打印。",
+      "prev.thumbPending": "缩略图加载中…",
+      "print.dlTitle": "下载 PDF（不打印）",
+      "print.dlFront": "下载正面",
+      "print.dlBack": "下载背面",
+      "print.dlJacket": "下载护封",
+      "print.dlAll": "全部下载",
+      "print.dlHint": "正、背两面分别生成矢量 PDF（booklet-front.pdf / booklet-back.pdf），不用先打印；生成后也可在下方链接里打开或再下载。渲染打印/大文件模式不支持矢量下载。全部下载时若浏览器询问，请允许本页多次下载。"
     },
     "zh-TW": {
       "app.title": "騎馬釘列印器",
@@ -237,7 +249,19 @@
       "set.cfDetect": "本範圍偵測結果 · 彩色頁：{0} ／ 純黑白頁：{1}",
       "print.cfSkipHint": "整頁跳過已開啟：命中的頁整頁留白，其餘頁面照常列印；列印方式不變。",
       "set.xShift": "列印位置校正（左右）",
-      "set.xShiftHint": "整張版面（內容+折線）一起左右平移。印一張正反、對摺透光看：背面中線在正面中線右邊 m 公釐，就填正數 m/2；在左邊填負數 m/2。改完重印一張核對，直到正反中線重合。範圍 ±10mm，正數=內容右移。"
+      "set.xShiftHint": "整張版面（內容+折線）一起左右平移。印一張正反、對摺透光看：背面中線在正面中線右邊 m 公釐，就填正數 m/2；在左邊填負數 m/2。改完重印一張核對，直到正反中線重合。範圍 ±10mm，正數=內容右移。",
+      "set.lossless": "輸出品質",
+      "set.losslessOn": "無損輸出（PNG）",
+      "set.losslessHint": "渲染列印預設用 JPEG（0.92）壓縮；勾選後改用 PNG 無損輸出（像素篩選同理）。向量 PDF 本來就是原樣嵌入、不受影響。PNG 更大更佔記憶體，大檔案或 600DPI 不建議開。",
+      "print.largeFile": "大檔案模式：這個檔案比較大，已自動改用渲染列印（向量 PDF 對超大檔案不可用）；縮圖改為捲到哪裡生成哪裡，避免卡住。列印流程不變。",
+      "print.vectorLarge": "檔案太大，向量 PDF 模式不可用，已自動改用渲染列印。",
+      "prev.thumbPending": "縮圖載入中…",
+      "print.dlTitle": "下載 PDF（不列印）",
+      "print.dlFront": "下載正面",
+      "print.dlBack": "下載背面",
+      "print.dlJacket": "下載護封",
+      "print.dlAll": "全部下載",
+      "print.dlHint": "正、背兩面分別產生向量 PDF（booklet-front.pdf / booklet-back.pdf），不用先列印；產生後也可在下方連結開啟或再次下載。渲染列印/大檔案模式不支援向量下載。全部下載時若瀏覽器詢問，請允許本頁多次下載。"
     },
     "ja": {
       "app.title": "中綴じ印刷ツール",
@@ -352,7 +376,19 @@
       "set.cfDetect": "この範囲の検出結果 · カラーページ：{0} ／ 白黒ページ：{1}",
       "print.cfSkipHint": "ページスキップが有効：該当ページは白紙、それ以外は通常どおり印刷します。印刷方式は変わりません。",
       "set.xShift": "印刷位置補正（左右）",
-      "set.xShiftHint": "面付け全体（内容＋折り線）を左右に平行移動します。1枚を両面印刷して二つ折りし、裏面の中心線が表面より右に m mm なら正の m/2、左なら負の m/2 を入力。再印刷して中心線が重なるまで調整（±10mm、正=右へ移動）。"
+      "set.xShiftHint": "面付け全体（内容＋折り線）を左右に平行移動します。1枚を両面印刷して二つ折りし、裏面の中心線が表面より右に m mm なら正の m/2、左なら負の m/2 を入力。再印刷して中心線が重なるまで調整（±10mm、正=右へ移動）。",
+      "set.lossless": "出力品質",
+      "set.losslessOn": "ロスレス出力（PNG）",
+      "set.losslessHint": "レンダリング印刷は既定で JPEG（0.92）圧縮です。チェックすると PNG のロスレス出力になります（色フィルターも同様）。ベクター PDF は元々そのまま埋め込まれ、影響ありません。PNG は大きくメモリも使うため、大容量や 600DPI では非推奨です。",
+      "print.largeFile": "大容量ファイルモード：ファイルが大きいため自動でレンダリング印刷に切り替えました（超大容量ではベクター PDF は使えません）。サムネイルはスクロール位置に応じて生成し、固まらないようにします。印刷の流れは変わりません。",
+      "print.vectorLarge": "ファイルが大きすぎるためベクター PDF は使えません。レンダリング印刷に切り替えました。",
+      "prev.thumbPending": "サムネイル生成中…",
+      "print.dlTitle": "PDF をダウンロード（印刷しない）",
+      "print.dlFront": "表面をダウンロード",
+      "print.dlBack": "裏面をダウンロード",
+      "print.dlJacket": "表紙（ジャケット）をダウンロード",
+      "print.dlAll": "すべてダウンロード",
+      "print.dlHint": "表・裏を別々のベクター PDF（booklet-front.pdf / booklet-back.pdf）として書き出します。先に印刷する必要はありません。下のリンクから開く／再ダウンロードもできます。レンダリング印刷・大容量モードではベクター書き出し不可。「すべてダウンロード」で複数ダウンロードを求められたら許可してください。"
     },
     "ko": {
       "app.title": "중철 인쇄 도구",
@@ -467,7 +503,19 @@
       "set.cfDetect": "이 범위 결과 · 컬러 페이지: {0} ／ 흑백 페이지: {1}",
       "print.cfSkipHint": "페이지 건너뜀이 켜져 있어 해당 페이지는 비우고 나머지는 그대로 인쇄합니다. 인쇄 방식은 그대로입니다.",
       "set.xShift": "인쇄 위치 보정(좌우)",
-      "set.xShiftHint": "판면 전체(내용+접지선)를 좌우로 함께 이동합니다. 한 장을 양면 인쇄해 반으로 접었을 때 뒷면 중심선이 앞면보다 오른쪽으로 m mm면 +m/2, 왼쪽이면 −m/2를 입력하세요. 다시 인쇄해 중심선이 겹칠 때까지 맞추면 됩니다(±10mm, 양수=오른쪽 이동)."
+      "set.xShiftHint": "판면 전체(내용+접지선)를 좌우로 함께 이동합니다. 한 장을 양면 인쇄해 반으로 접었을 때 뒷면 중심선이 앞면보다 오른쪽으로 m mm면 +m/2, 왼쪽이면 −m/2를 입력하세요. 다시 인쇄해 중심선이 겹칠 때까지 맞추면 됩니다(±10mm, 양수=오른쪽 이동).",
+      "set.lossless": "출력 품질",
+      "set.losslessOn": "무손실 출력(PNG)",
+      "set.losslessHint": "렌더링 인쇄는 기본적으로 JPEG(0.92) 압축을 사용합니다. 체크하면 PNG 무손실 출력으로 바뀝니다(색상 필터도 동일). 벡터 PDF는 원본 그대로 삽입되어 영향을 받지 않습니다. PNG는 더 크고 메모리를 많이 쓰므로 대용량/600DPI에는 권장하지 않습니다.",
+      "print.largeFile": "대용량 파일 모드: 파일이 커서 자동으로 렌더링 인쇄로 전환했습니다(초대용량에서는 벡터 PDF 사용 불가). 썸네일은 스크롤하는 위치에 따라 생성해 멈추지 않게 합니다. 인쇄 흐름은 그대로입니다.",
+      "print.vectorLarge": "파일이 너무 커서 벡터 PDF 모드를 사용할 수 없습니다. 렌더링 인쇄로 전환했습니다.",
+      "prev.thumbPending": "썸네일 불러오는 중…",
+      "print.dlTitle": "PDF 다운로드(인쇄 안 함)",
+      "print.dlFront": "앞면 다운로드",
+      "print.dlBack": "뒷면 다운로드",
+      "print.dlJacket": "표지(재킷) 다운로드",
+      "print.dlAll": "모두 다운로드",
+      "print.dlHint": "앞/뒤를 각각 벡터 PDF(booklet-front.pdf / booklet-back.pdf)로 만듭니다. 먼저 인쇄할 필요가 없습니다. 아래 링크에서 열거나 다시 받을 수 있습니다. 렌더링 인쇄/대용량 모드에서는 벡터 내보내기를 지원하지 않습니다. 모두 다운로드 시 브라우저가 여러 파일 다운로드를 물으면 허용하세요."
     },
     "de": {
       "app.title": "Broschürendrucker",
@@ -582,7 +630,19 @@
       "set.cfDetect": "Ergebnis dieses Bereichs · Farbseiten: {0} ／ Schwarzweiß-Seiten: {1}",
       "print.cfSkipHint": "Seitensprung aktiv: betroffene Seiten bleiben leer, die übrigen drucken normal; der Druckweg bleibt gleich.",
       "set.xShift": "Druckposition korrigieren (X)",
-      "set.xShiftHint": "Verschiebt das gesamte Nutzen (Inhalt + Falzlinie) seitlich. Ein Blatt beidseitig drucken, falten: liegt die Mittellinie der Rückseite m mm rechts der Vorderseite, +m/2 eintragen, links entsprechend −m/2. Nach jedem Wert erneut drucken, bis beide Linien deckungsgleich sind (±10 mm, positiv = nach rechts)."
+      "set.xShiftHint": "Verschiebt das gesamte Nutzen (Inhalt + Falzlinie) seitlich. Ein Blatt beidseitig drucken, falten: liegt die Mittellinie der Rückseite m mm rechts der Vorderseite, +m/2 eintragen, links entsprechend −m/2. Nach jedem Wert erneut drucken, bis beide Linien deckungsgleich sind (±10 mm, positiv = nach rechts).",
+      "set.lossless": "Ausgabequalität",
+      "set.losslessOn": "Verlustfreie Ausgabe (PNG)",
+      "set.losslessHint": "Der gerenderte Druck komprimiert standardmäßig mit JPEG (0.92); aktiviert wird PNG ohne JPEG-Verluste verwendet (auch für den Farbfilter). Vektor-PDFs werden ohnehin unverändert eingebettet. PNG ist größer und speicherintensiver – bei großen Dateien oder 600 DPI nicht empfohlen.",
+      "print.largeFile": "Große-Datei-Modus: Die Datei ist groß, daher automatisch gerenderter Druck (Vektor-PDF ist für sehr große Dateien nicht verfügbar). Miniaturen werden erst beim Scrollen erzeugt, damit nichts hängt. Der Druckablauf bleibt gleich.",
+      "print.vectorLarge": "Die Datei ist zu groß; der Vektordruck ist nicht verfügbar. Es wurde auf gerenderten Druck umgeschaltet.",
+      "prev.thumbPending": "Miniatur wird erzeugt…",
+      "print.dlTitle": "PDF herunterladen (ohne Drucken)",
+      "print.dlFront": "Vorderseite herunterladen",
+      "print.dlBack": "Rückseite herunterladen",
+      "print.dlJacket": "Umschlag herunterladen",
+      "print.dlAll": "Alle herunterladen",
+      "print.dlHint": "Erzeugt Vorder- und Rückseite als separate Vektor-PDFs (booklet-front.pdf / booklet-back.pdf), ohne zu drucken. Die Dateien lassen sich unten auch öffnen oder erneut laden. Bei gerendertem Druck/Großdateimodus ist kein Vektor-Export möglich. Erlaubt der Browser bei „Alle herunterladen\" mehrere Downloads, bitte bestätigen."
     },
     "fr": {
       "app.title": "Imprimeur de livrets",
@@ -697,7 +757,19 @@
       "set.cfDetect": "Résultat de cette plage · pages couleur : {0} ／ pages noir et blanc : {1}",
       "print.cfSkipHint": "Saut de page actif : les pages concernées restent blanches, les autres s'impriment normalement ; le mode d'impression ne change pas.",
       "set.xShift": "Correction de position d'impression (X)",
-      "set.xShiftHint": "Décale tout l'imposé (contenu + trait de pliage) horizontalement. Imprimez une feuille en recto-verso puis pliez : si la ligne du verso est m mm à droite du recto, saisissez +m/2 ; à gauche, −m/2. Réimprimez jusqu'à ce que les deux lignes coïncident (±10 mm, positif = vers la droite)."
+      "set.xShiftHint": "Décale tout l'imposé (contenu + trait de pliage) horizontalement. Imprimez une feuille en recto-verso puis pliez : si la ligne du verso est m mm à droite du recto, saisissez +m/2 ; à gauche, −m/2. Réimprimez jusqu'à ce que les deux lignes coïncident (±10 mm, positif = vers la droite).",
+      "set.lossless": "Qualité de sortie",
+      "set.losslessOn": "Sortie sans perte (PNG)",
+      "set.losslessHint": "L'impression rendue utilise par défaut une compression JPEG (0,92) ; cochez pour une sortie PNG sans perte (filtre couleur inclus). Les PDF vectoriels sont insérés tels quels, sans perte. Le PNG est plus lourd et plus gourmand en mémoire : déconseillé pour les gros fichiers ou 600 DPI.",
+      "print.largeFile": "Mode gros fichier : fichier volumineux, passage automatique à l'impression rendue (le PDF vectoriel n'est pas disponible pour les très gros fichiers) ; les miniatures se génèrent au défilement pour éviter de bloquer. Le flux d'impression reste identique.",
+      "print.vectorLarge": "Fichier trop volumineux : le mode PDF vectoriel n'est pas disponible, passage à l'impression rendue.",
+      "prev.thumbPending": "Miniature en cours…",
+      "print.dlTitle": "Télécharger les PDF (sans imprimer)",
+      "print.dlFront": "Télécharger le recto",
+      "print.dlBack": "Télécharger le verso",
+      "print.dlJacket": "Télécharger la couverture",
+      "print.dlAll": "Tout télécharger",
+      "print.dlHint": "Génère le recto et le verso en PDF vectoriels séparés (booklet-front.pdf / booklet-back.pdf), sans imprimer. Les fichiers restent accessibles via les liens plus bas. L'export vectoriel n'est pas disponible en impression rendue ni en mode gros fichier. Pour « Tout télécharger », autorisez les téléchargements multiples si le navigateur le demande."
     },
     "en": {
       "app.title": "Booklet Printer",
@@ -812,7 +884,19 @@
       "set.cfDetect": "This range · color pages: {0} ／ black / grey pages: {1}",
       "print.cfSkipHint": "Page skipping is on: matching pages stay blank, the rest print normally; the print engine is unchanged.",
       "set.xShift": "Print position correction (X)",
-      "set.xShiftHint": "Shifts the whole imposed sheet (content + fold line) sideways. Print one sheet on both sides and fold it: if the back center line is m mm to the right of the front line, enter +m/2; if it is to the left, enter -m/2. Reprint and repeat until both lines coincide. Range ±10 mm, positive = move right."
+      "set.xShiftHint": "Shifts the whole imposed sheet (content + fold line) sideways. Print one sheet on both sides and fold it: if the back center line is m mm to the right of the front line, enter +m/2; if it is to the left, enter -m/2. Reprint and repeat until both lines coincide. Range ±10 mm, positive = move right.",
+      "set.lossless": "Output quality",
+      "set.losslessOn": "Lossless output (PNG)",
+      "set.losslessHint": "Rendered printing compresses with JPEG (0.92) by default; check this to use lossless PNG instead (pixel filters included). Vector PDFs embed the original pages untouched. PNG is larger and uses more memory, so avoid it for big files or 600 DPI.",
+      "print.largeFile": "Large-file mode: this file is big, so rendered printing is used automatically (vector PDF is unavailable for very large files); thumbnails are generated as you scroll to avoid locking up. The print flow is unchanged.",
+      "print.vectorLarge": "The file is too large, so vector PDF mode is unavailable. Switched to rendered printing.",
+      "prev.thumbPending": "Loading thumbnail…",
+      "print.dlTitle": "Download PDFs (no printing)",
+      "print.dlFront": "Download front",
+      "print.dlBack": "Download back",
+      "print.dlJacket": "Download jacket",
+      "print.dlAll": "Download all",
+      "print.dlHint": "Builds the front and back passes as separate vector PDFs (booklet-front.pdf / booklet-back.pdf) without printing. The files are also available from the links below. Vector export is unavailable in rendered-print and large-file modes. For \"Download all\", allow multiple downloads if the browser asks."
     }
   }
 }

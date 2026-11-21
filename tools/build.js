@@ -93,7 +93,9 @@ if (pdflib.indexOf('PDFLib') < 0) fail('pdf-lib global missing');
 
 /* ---- required structure ---- */
 [['id="app"', body], ['id="printRoot"', body], ['id="pageStyle"', body], ['id="modeBar"', body],
- ['id="dpiField"', body], ['id="pdfLinks"', body], ['id="qualityHint"', body],
+ ['id="dpiField"', body], ['id="losslessField"', body], ['id="losslessChk"', body],
+ ['id="pdfLinks"', body], ['id="qualityHint"', body], ['id="largeFileHint"', body],
+ ['id="dlBar"', body], ['id="dlFront"', body], ['id="dlBack"', body], ['id="dlJacket"', body], ['id="dlAll"', body],
  ['id="btnFront"', body], ['id="btnBack"', body], ['id="btnJacket"', body], ['id="gutterRange"', body],
  ['id="safeChk"', body], ['id="mTop"', body], ['id="mRight"', body], ['id="mBottom"', body], ['id="mLeft"', body], ['id="foldChk"', body],
  ['id="xShift"', body], ['id="cfSel"', body], ['id="cfDetect"', body], ['id="cfPrintHint"', body], ['id="cfSkipHint"', body],

@@ -56,6 +56,13 @@
             <option value="600">600 DPI</option>
           </select>
         </div>
+        <div class="field" id="losslessField">
+          <label data-i18n="set.lossless">Output quality</label>
+          <div class="check-row">
+            <label class="check"><input id="losslessChk" type="checkbox"> <span data-i18n="set.losslessOn"></span></label>
+          </div>
+          <div class="hint" data-i18n="set.losslessHint"></div>
+        </div>
         <div class="field">
           <label data-i18n="set.gutter">Center gutter</label>
           <div class="slider-row">
@@ -209,11 +216,20 @@
           <button id="btnJacket" class="primary" type="button" data-i18n="print.btn"></button>
         </li>
       </ol>
+      <div id="dlBar" class="dlbar">
+        <span class="dlbar-title" data-i18n="print.dlTitle"></span>
+        <button id="dlFront" type="button" data-i18n="print.dlFront"></button>
+        <button id="dlBack" type="button" data-i18n="print.dlBack"></button>
+        <button id="dlJacket" type="button" class="hidden" data-i18n="print.dlJacket"></button>
+        <button id="dlAll" type="button" data-i18n="print.dlAll"></button>
+      </div>
+      <div class="hint" data-i18n="print.dlHint"></div>
       <div id="pdfLinks" class="pdflinks hidden"></div>
       <div id="qualityHint" class="tip2 hidden"></div>
       <div class="tip2" id="modeHint" data-i18n="print.modeHint"></div>
       <div class="tip2 hidden" id="cfPrintHint" data-i18n="print.cfHint"></div>
       <div class="tip2 hidden" id="cfSkipHint" data-i18n="print.cfSkipHint"></div>
+      <div class="tip2 hidden" id="largeFileHint" data-i18n="print.largeFile"></div>
       <div class="tip"><strong data-i18n="print.tipTitle"></strong><span data-i18n="print.tip"></span></div>
       <div class="tip2" data-i18n="print.tip2"></div>
       <div class="tip2" id="jacketHint" data-i18n="print.jacketHint"></div>

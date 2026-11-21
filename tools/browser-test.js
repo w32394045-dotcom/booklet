@@ -506,6 +506,57 @@ async function setFile(selector, filePath) {
     await send('Emulation.setEmulatedMedia', { media: 'screen' });
     await ev('window.booklet.setConfig({xShift:0,printMode:"vector"})', true);
 
+    /* ---------- 8b7. lossless output ---------- */
+    await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"raster",rangeFrom:1,rangeTo:10,foldLine:true,lossless:false,dpi:200})', true);
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    eq(await ev('window.booklet.getState().lastPrintImageType'), 'image/jpeg', 'rendered printing uses JPEG by default');
+    await ev('window.booklet.setConfig({lossless:true})', true);
+    await evj('window.booklet.buildPrintDom("front").then(JSON.stringify)');
+    eq(await ev('window.booklet.getState().lastPrintImageType'), 'image/png', 'lossless mode emits PNG for rendered pages');
+    ok(await ev('document.querySelectorAll("#printRoot img[src]").length>0'), 'lossless PNG images still decode in the print DOM');
+    await ev('window.booklet.cleanupPrint()');
+    await ev('window.booklet.setConfig({lossless:false})', true);
+
+    /* ---------- 8b8. separate front/back PDF downloads ---------- */
+    await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:10,foldLine:true,xShift:0,coverMode:"page",colorFilter:"off"})', true);
+    const dl = await evj('window.booklet.downloadPass("front").then(JSON.stringify)');
+    eq(dl.pages, 3, 'download front generates the front pass (3 sheets)');
+    ok(dl.name === 'booklet-front.pdf' && dl.size > 1000, 'front download has its own filename and payload', dl.name + ':' + dl.size);
+    const dlBack = await evj('window.booklet.downloadPass("back").then(JSON.stringify)');
+    eq(dlBack.pages, 3, 'download back generates the back pass (3 sheets)');
+    ok(dlBack.url !== dl.url, 'front and back are separate PDF files');
+    ok(await waitFor('document.querySelectorAll("#pdfLinks a").length>=2', 10000), 'downloaded PDFs stay available as links');
+    const dlUi = await evj('JSON.stringify({frontDisabled:document.getElementById("dlFront").disabled,backDisabled:document.getElementById("dlBack").disabled,jacketHidden:document.getElementById("dlJacket").classList.contains("hidden"),allDisabled:document.getElementById("dlAll").disabled})');
+    eq([dlUi.frontDisabled, dlUi.backDisabled, dlUi.jacketHidden, dlUi.allDisabled], [false, false, true, false], 'front/back download buttons enabled, jacket hidden in page mode');
+    await ev('window.booklet.setConfig({colorFilter:"mono"})', true);
+    eq(await ev('document.getElementById("dlFront").disabled'), true, 'downloads disabled for pixel-filter modes');
+    eq(await ev('window.booklet.downloadPass("front")', true), null, 'download API refuses pixel-filter modes');
+    await ev('window.booklet.setConfig({colorFilter:"off"})', true);
+
+    /* ---------- 8b9. large-file mode: lazy reads, lazy thumbnails ---------- */
+    await ev('window.booklet.setHeavyThreshold(1000)');
+    await setFile('#fileInput', path.join(dir, 'fixtures', 'p10.pdf'));
+    ok(await waitFor('window.booklet.getState().largeFile===true', 30000), 'large-file mode activates for a big file');
+    const lf = await evj('JSON.stringify({mode:window.booklet.getState().cfg.printMode,loadMode:window.booklet.getState().loadMode,vecDisabled:document.querySelector("#modeBar .modebtn[data-mode=vector]").disabled,hintHidden:document.getElementById("largeFileHint").classList.contains("hidden"),hasBytes:window.booklet.getState().hasBytes,thumbCount:window.booklet.getState().thumbCount,previewImgs:document.querySelectorAll("#prevFront img[src]").length})');
+    eq([lf.mode, lf.loadMode, lf.vecDisabled, lf.hintHidden, lf.hasBytes],
+      ['raster', 'range', true, false, false], 'large file: range-loaded, raster only, no retained bytes');
+    ok(lf.thumbCount <= 1 && lf.previewImgs <= 1, 'large file: thumbnails are not eagerly rendered', JSON.stringify(lf));
+    const tooLarge = await ev('window.booklet.buildVectorPdf("front").then(function(){return "ok"}).catch(function(e){return (e&&e.code)||"err"})', true);
+    eq(tooLarge, 'VECTOR_TOO_LARGE', 'large file: vector PDF refused');
+    eq(await ev('window.booklet.downloadPass("front")', true), null, 'large file: PDF download refused');
+    await ev('document.getElementById("btnFront").click()');
+    ok(await waitFor('document.querySelectorAll("#printRoot .print-sheet").length>=1', 60000), 'large file: printing falls back to rendered printing');
+    await ev('window.booklet.cleanupPrint()');
+    await send('Emulation.setDeviceMetricsOverride', { width: 1200, height: 2600, deviceScaleFactor: 1, mobile: false });
+    ok(await waitFor('window.booklet.getState().thumbCount>0', 30000), 'large file: thumbnails render lazily when the preview is visible');
+    await send('Emulation.setDeviceMetricsOverride', { width: 1200, height: 900, deviceScaleFactor: 1, mobile: false });
+    await ev('window.booklet.setHeavyThreshold(104857600)');
+    await ev('window.booklet.loadBase64(' + JSON.stringify(pdfB64) + ',"p10.pdf")', true);
+    await ev('window.booklet.setConfig({printMode:"vector"})', true);
+    ok(await waitFor('window.booklet.getState().largeFile===false', 20000), 'large-file mode cleared for a normal file');
+
     /* ---------- 8c. vector print: hidden iframe, no popup window, real CSP ---------- */
     await ev('window.booklet.loadBase64(' + JSON.stringify(vecB64) + ',"vector8.pdf")', true);
     await ev('window.booklet.setConfig({printMode:"vector",rangeFrom:1,rangeTo:8,paper:"A4",gutter:6,mirror:false,reverse:false})', true);

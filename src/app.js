@@ -10,12 +10,19 @@
   var LS_LANG = 'booklet.lang.v1';
   var LS_CFG = 'booklet.cfg.v1';
   var LS_STATS = 'booklet.stats.v1';
+  /* Above this size the PDF is read lazily from disk (range transport) and rendered printing
+     is used: holding several in-memory copies of a giant file crashes the tab. */
+  var HEAVY_BYTES = 100 * 1024 * 1024;
 
   var state = {
     pdf: null,
     pdfName: '',
     pdfSize: 0,
     pdfBytes: null,
+    pdfFile: null,
+    loadMode: '',
+    largeFile: false,
+    lastPrintImageType: '',
     pdfLibDoc: null,
     pageCount: 0,
     covers: { front: newCover(), back: newCover() },
@@ -35,6 +42,9 @@
     colorPages: {},
     colorToken: 0,
     colorScanPromise: null,
+    thumbObs: null,
+    lazyQueue: [],
+    lazyRunning: false,
     quality: null,
     busy: false,
     printing: false,
@@ -167,7 +177,8 @@
       rangeTo: parseInt($('rangeTo').value, 10),
       foldLine: $('foldChk').checked,
       colorFilter: $('cfSel').value,
-      xShift: parseFloat($('xShift').value)
+      xShift: parseFloat($('xShift').value),
+      lossless: $('losslessChk').checked
     }, state.pageCount);
   }
 
@@ -192,6 +203,7 @@
     $('foldChk').checked = cfg.foldLine;
     $('cfSel').value = cfg.colorFilter || 'off';
     $('xShift').value = String(cfg.xShift || 0);
+    $('losslessChk').checked = !!cfg.lossless;
     $('rangeFrom').value = String(cfg.rangeFrom);
     $('rangeTo').value = state.pageCount ? String(cfg.rangeTo) : '';
     $('rangeFrom').max = String(state.pageCount || 1);
@@ -346,7 +358,7 @@
     } else {
       tag = String(pageNo);
     }
-    return '<div class="' + cls + '" data-side="' + esc(side || '') + '" data-pos="' + (pos || '') + '">' +
+    return '<div class="' + cls + '" data-side="' + esc(side || '') + '" data-pos="' + (pos || '') + '" data-page="' + (pageNo == null ? '' : pageNo) + '">' +
       '<span class="pg">' + esc(tag) + '</span>' +
       '<span class="pbl">' + esc(t('prev.blank')) + '</span>' +
       '<img alt="" decoding="async"></div>';
@@ -436,15 +448,20 @@
 
   function syncPane(el, side, pageNo) {
     var img = el.querySelector('img');
+    var lbl = el.querySelector('.pbl');
     var url = '';
     if (side) url = state.covers[side].kind ? state.covers[side].thumb : '';
     else if (pageNo != null) url = state.thumbs[pageNo] || '';
     if (url) {
       if (img.getAttribute('src') !== url) img.setAttribute('src', url);
       el.classList.remove('blank');
+      if (lbl) lbl.textContent = t('prev.blank');
     } else {
       if (img.hasAttribute('src')) img.removeAttribute('src');
       el.classList.add('blank');
+      /* In large-file mode thumbnails are made on demand; say so instead of "blank". */
+      var pending = !side && pageNo != null && !!state.largeFile && !isPageSkipped(pageNo);
+      if (lbl) lbl.textContent = pending ? t('prev.thumbPending') : t('prev.blank');
     }
   }
 
@@ -496,6 +513,7 @@
       }
     }
     syncPreviewImages();
+    if (state.largeFile) scheduleLazyThumbs();
   }
 
   function updateCoverModeUi() {
@@ -539,9 +557,10 @@
     var done = state.done[state.vol] || {};
     var pixelFilter = isPixelFilter();
     var pageSkip = isPageSkipFilter();
-    /* Pixel filters work on rendered pixels, so they always use the raster pass.
-       Page-skip modes only blank whole pages and keep the chosen print engine. */
-    var vector = !(state.cfg && state.cfg.printMode === 'raster') && !pixelFilter;
+    var heavy = !!state.largeFile;
+    /* Pixel filters work on rendered pixels and big files cannot keep the source in memory,
+       so both always use the raster pass. Page-skip modes keep the chosen print engine. */
+    var vector = !(state.cfg && state.cfg.printMode === 'raster') && !pixelFilter && !heavy;
     [['Front', 'front'], ['Back', 'back'], ['Jacket', 'jacket']].forEach(function (pair) {
       var step = $('step' + pair[0]);
       var btn = $('btn' + pair[0]);
@@ -558,14 +577,33 @@
     }
     var dpiField = $('dpiField');
     if (dpiField) dpiField.classList.toggle('hidden', vector);
+    var losslessField = $('losslessField');
+    if (losslessField) losslessField.classList.toggle('hidden', vector);
     var bar = $('modeBar');
     if (bar) {
       var btns = bar.querySelectorAll('.modebtn');
       for (var i = 0; i < btns.length; i++) {
         var isVectorBtn = btns[i].getAttribute('data-mode') === 'vector';
         btns[i].classList.toggle('on', btns[i].getAttribute('data-mode') === (vector ? 'vector' : 'raster'));
-        btns[i].disabled = pixelFilter && isVectorBtn;
+        btns[i].disabled = (pixelFilter || heavy) && isVectorBtn;
       }
+    }
+    var hugeHint = $('largeFileHint');
+    if (hugeHint) hugeHint.classList.toggle('hidden', !heavy);
+    /* Vector PDF export needs the source bytes: not available for pixel filters / big files. */
+    var canDownload = !!state.pdf && !state.busy && !pixelFilter && !heavy;
+    var dlFront = $('dlFront');
+    var dlBack = $('dlBack');
+    var dlAll = $('dlAll');
+    if (dlFront) dlFront.disabled = !canDownload;
+    if (dlBack) dlBack.disabled = !canDownload;
+    if (dlAll) dlAll.disabled = !canDownload;
+    var dlJacket = $('dlJacket');
+    if (dlJacket) {
+      var jkOn = jacketEnabled();
+      /* The jacket pass only uses the uploaded covers, so it can be exported even in big-file mode. */
+      dlJacket.disabled = !(!!state.pdf && !state.busy && !pixelFilter && jkOn);
+      dlJacket.classList.toggle('hidden', !jkOn);
     }
     var cfHint = $('cfPrintHint');
     if (cfHint) cfHint.classList.toggle('hidden', !pixelFilter);
@@ -618,6 +656,30 @@
       fr.onload = function () { res(new Uint8Array(fr.result)); };
       fr.onerror = function () { rej(fr.error); };
       fr.readAsArrayBuffer(file);
+    });
+  }
+
+  /* Big files are read range-by-range straight from disk: pdf.js asks for byte ranges and we
+     serve them from File.slice(), so the whole PDF never has to sit in memory. */
+  function openPdfFile(file) {
+    return new Promise(function (resolve, reject) {
+      var RangeT = window.pdfjsLib.PDFDataRangeTransport;
+      if (!RangeT) { reject(new Error('NO_RANGE_TRANSPORT')); return; }
+      var transport = new RangeT(file.size, []);
+      transport.requestDataRange = function (begin, end) {
+        file.slice(begin, end).arrayBuffer().then(function (buf) {
+          try { transport.onDataRange(begin, new Uint8Array(buf)); } catch (e) {}
+        }, function () {});
+      };
+      try {
+        window.pdfjsLib.getDocument({
+          range: transport,
+          disableAutoFetch: true,
+          disableStream: false,
+          isEvalSupported: false,
+          useSystemFonts: true
+        }).promise.then(resolve, reject);
+      } catch (e) { reject(e); }
     });
   }
 
@@ -783,8 +845,12 @@
     ctx.fillRect(0, 0, cv.width, cv.height);
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
     applyColorFilter(ctx, cv.width, cv.height);
+    /* Rendered printing normally emits JPEG; lossless mode keeps the pixels as PNG. */
+    var lossless = !!(opt.lossless || (opt.print && state.cfg && state.cfg.lossless));
+    var mime = lossless ? 'image/png' : 'image/jpeg';
+    if (opt.print) state.lastPrintImageType = mime;
     var blob = await new Promise(function (res) {
-      cv.toBlob(function (b) { res(b); }, 'image/jpeg', 0.92);
+      cv.toBlob(function (b) { res(b); }, mime, lossless ? undefined : 0.92);
     });
     page.cleanup();
     return {
@@ -854,31 +920,95 @@
     }
   }
 
+  /* Large-file mode: only preview panes that scroll into view get a thumbnail. */
+  function lazyThumbDone(pageNo) {
+    return !!state.thumbs[pageNo] || isPageSkipped(pageNo);
+  }
+
+  function scheduleLazyThumbs() {
+    if (!state.largeFile || !state.pdf) return;
+    if (!('IntersectionObserver' in window)) { ensureThumbs(); return; }
+    if (!state.thumbObs) {
+      state.thumbObs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          var pane = en.target;
+          try { state.thumbObs.unobserve(pane); } catch (e) {}
+          var pageNo = parseInt(pane.getAttribute('data-page'), 10);
+          if (!(pageNo > 0) || lazyThumbDone(pageNo)) return;
+          if (state.lazyQueue.indexOf(pageNo) < 0) state.lazyQueue.push(pageNo);
+          pumpLazyThumbs();
+        });
+      }, { rootMargin: '240px' });
+    }
+    /* Re-observe the panes of the current preview (volume/range changes rebuild them). */
+    try { state.thumbObs.disconnect(); } catch (e) {}
+    var panes = document.querySelectorAll('.mini-pane[data-page]');
+    for (var i = 0; i < panes.length; i++) {
+      var pageNo = parseInt(panes[i].getAttribute('data-page'), 10);
+      if (pageNo > 0 && !lazyThumbDone(pageNo)) state.thumbObs.observe(panes[i]);
+    }
+  }
+
+  function pumpLazyThumbs() {
+    if (state.lazyRunning || !state.pdf) return;
+    state.lazyRunning = true;
+    var doc = state.pdf;
+    (async function () {
+      while (state.lazyQueue.length) {
+        var pageNo = state.lazyQueue.shift();
+        if (doc !== state.pdf) break;
+        if (state.thumbs[pageNo] || isPageSkipped(pageNo)) continue;
+        try {
+          var info = await renderThumb(doc, pageNo);
+          if (doc !== state.pdf || state.thumbs[pageNo] || isPageSkipped(pageNo)) { revokeUrl(info.url); continue; }
+          state.thumbs[pageNo] = info.url;
+          syncPreviewImages();
+        } catch (e) {
+          state.thumbError = String((e && e.message) || e);
+        }
+      }
+      state.lazyRunning = false;
+    })();
+  }
+
+  function resetLazyThumbs() {
+    if (state.thumbObs) { try { state.thumbObs.disconnect(); } catch (e) {} state.thumbObs = null; }
+    state.lazyQueue = [];
+    state.lazyRunning = false;
+  }
+
   function maybeThumbs() {
     if (!state.pdf || !state.plan) return;
+    if (state.largeFile) { scheduleLazyThumbs(); return; }
     ensureThumbs();
   }
 
   /* ---------------- loading ---------------- */
 
-  async function loadBytes(bytes, name, size) {
+  /* Shared state reset after a PDF document has been opened (data or range mode). */
+  async function finishLoad(doc, name, size, opts) {
+    opts = opts || {};
     $('fileErr').classList.add('hidden');
-    var keepBytes = new Uint8Array(bytes);
-    var doc = await openPdf(bytes);
     if (state.pdf) { try { state.pdf.destroy(); } catch (e) {} }
+    resetLazyThumbs();
     state.pdf = doc;
     state.pdfName = name || 'document.pdf';
-    state.pdfSize = size || keepBytes.length;
-    state.pdfBytes = keepBytes;
+    state.pdfSize = size || 0;
+    state.pdfBytes = opts.bytes || null;
+    state.pdfFile = opts.file || null;
+    state.loadMode = opts.mode || '';
+    /* Big files: lazy range reads from disk + rendered printing; see openPdfFile(). */
+    state.largeFile = !!(state.pdfSize && state.pdfSize > HEAVY_BYTES);
+    state.lastPrintImageType = '';
     state.pdfLibDoc = null;
     revokeVectorUrls();
     var oldLinks = $('pdfLinks');
     if (oldLinks) { oldLinks.classList.add('hidden'); oldLinks.innerHTML = ''; }
     state.pageCount = doc.numPages;
-    state.cfg = C.sanitizeCfg(Object.assign({}, state.cfg, {
-      rangeFrom: 1,
-      rangeTo: doc.numPages
-    }), doc.numPages);
+    var patch = { rangeFrom: 1, rangeTo: doc.numPages };
+    if (state.largeFile) patch.printMode = 'raster';
+    state.cfg = C.sanitizeCfg(Object.assign({}, state.cfg, patch), doc.numPages);
     state.done = {};
     state.vol = 0;
     state.thumbSig = '';
@@ -896,6 +1026,13 @@
     $('fileMeta').textContent = t('file.meta', state.pageCount, bytesText(Math.round(state.pdfSize)));
     recalc();
     analyzeQuality();
+  }
+
+  async function loadBytes(bytes, name, size) {
+    $('fileErr').classList.add('hidden');
+    var keepBytes = new Uint8Array(bytes);
+    var doc = await openPdf(bytes);
+    await finishLoad(doc, name, size || keepBytes.length, { bytes: keepBytes, mode: 'data' });
   }
 
   /* Estimate the effective resolution of image-only (scanned) pages, so blur can be diagnosed. */
@@ -948,9 +1085,23 @@
   }
 
   async function loadPdfFile(file) {
+    $('fileErr').classList.add('hidden');
+    var heavy = file.size > HEAVY_BYTES;
+    if (heavy && window.pdfjsLib.PDFDataRangeTransport) {
+      try {
+        var rangeDoc = await openPdfFile(file);
+        await finishLoad(rangeDoc, file.name, file.size, { file: file, mode: 'range' });
+        return;
+      } catch (e) {
+        /* Range loading failed; fall through to the in-memory path below. */
+      }
+    }
     try {
       var bytes = await readAsArray(file);
-      await loadBytes(bytes, file.name, file.size);
+      /* Only keep a copy for vector printing when the file is small enough for that. */
+      var keepBytes = heavy ? null : new Uint8Array(bytes);
+      var doc = await openPdf(bytes);
+      await finishLoad(doc, file.name, file.size, keepBytes ? { bytes: keepBytes, file: file, mode: 'data' } : { file: file, mode: 'data' });
     } catch (e) {
       showFileError(t('file.err'));
     }
@@ -1020,8 +1171,9 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, w, h);
     ctx.drawImage(img, 0, 0, w, h);
-    var mime = slot.img.mime === 'image/png' ? 'image/png' : 'image/jpeg';
-    var blob = await canvasToBlob(cv, mime, 0.92);
+    var lossless = !!(state.cfg && state.cfg.lossless);
+    var mime = (slot.img.mime === 'image/png' || lossless) ? 'image/png' : 'image/jpeg';
+    var blob = await canvasToBlob(cv, mime, lossless ? undefined : 0.92);
     var buf = await blob.arrayBuffer();
     slot.img.encoded = { bytes: new Uint8Array(buf), mime: mime, w: w, h: h };
     return slot.img.encoded;
@@ -1112,7 +1264,7 @@
       return { url: slot.img.url, wmm: fit.wmm, hmm: fit.hmm };
     }
     if (!slot.pdf || !slot.pdf.doc) return null;
-    return await renderPage(slot.pdf.doc, 1, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: state.cfg.dpi });
+    return await renderPage(slot.pdf.doc, 1, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: state.cfg.dpi, print: true });
   }
 
   async function buildJob(kind) {
@@ -1153,7 +1305,7 @@
     async function lane() {
       while (cursor < needed.length) {
         var pageNo = needed[cursor++];
-        var info = isPageSkipped(pageNo) ? null : await renderPage(state.pdf, pageNo, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: dpi });
+        var info = isPageSkipped(pageNo) ? null : await renderPage(state.pdf, pageNo, { panelWmm: panelWmm, panelHmm: panelHmm, dpi: dpi, print: true });
         if (info) cache[pageNo] = info;
         doneCount++;
         $('busyText').textContent = t('print.busy') + ' ' + doneCount + '/' + needed.length;
@@ -1346,6 +1498,7 @@
         cache[tokens[ti]] = await coverVectorEntry(tokens[ti], out, content.w, content.h);
       }
     } else {
+      if (!state.pdfBytes) throw { code: 'VECTOR_TOO_LARGE' };
       sheets = C.jobsForVolume(currentVolume(), state.cfg)[kind];
       var srcDoc = await mainLibDoc();
       var needed = [];
@@ -1395,8 +1548,9 @@
 
   function setPrintMode(mode) {
     if (mode !== 'vector' && mode !== 'raster') return;
-    /* Pixel filters work on rendered pixels, so vector printing is unavailable while one is on. */
-    if (mode === 'vector' && state.cfg && isPixelFilter()) return;
+    /* Pixel filters work on rendered pixels and big files cannot keep the source in memory,
+       so vector printing/export is unavailable in both cases. */
+    if (mode === 'vector' && state.cfg && (isPixelFilter() || state.largeFile)) return;
     state.cfg.printMode = mode;
     save(LS_CFG, state.cfg);
     renderSteps();
@@ -1461,7 +1615,10 @@
       printBlobUrl(res.url, function () { showFileError(t('print.pdfBlocked')); });
       recordPrinted(kind, res.pages, state.vol);
     } catch (e) {
-      if (e && (e.code === 'VECTOR_ROTATION' || e.code === 'VECTOR_LOAD' || e.code === 'VECTOR_UNAVAILABLE' || e.code === 'VECTOR_CROPBOX')) {
+      if (e && e.code === 'VECTOR_TOO_LARGE') {
+        showFileError(t('print.vectorLarge'));
+        fallback = true;
+      } else if (e && (e.code === 'VECTOR_ROTATION' || e.code === 'VECTOR_LOAD' || e.code === 'VECTOR_UNAVAILABLE' || e.code === 'VECTOR_CROPBOX')) {
         showFileError(t('print.pdfFallback'));
         fallback = true;
       } else {
@@ -1515,8 +1672,53 @@
   /* ---------------- events / boot ---------------- */
 
   async function doPrint(kind) {
-    if (state.cfg && (state.cfg.printMode === 'raster' || isPixelFilter())) return doPrintRaster(kind);
+    if (state.cfg && (state.cfg.printMode === 'raster' || isPixelFilter() || state.largeFile)) return doPrintRaster(kind);
     return doPrintVector(kind);
+  }
+
+  /* Export one pass as a PDF file (front / back / jacket) without printing it. */
+  async function downloadPass(kind) {
+    if (state.busy || !state.pdf || !state.plan) return null;
+    /* The jacket only uses the uploaded covers, so big-file mode can still export it. */
+    if (isPixelFilter() || (kind !== 'jacket' && (state.largeFile || !state.pdfBytes))) {
+      showFileError(t('print.vectorLarge'));
+      return null;
+    }
+    state.busy = true;
+    renderSteps();
+    try {
+      var res = await buildVectorPdf(kind);
+      var name = 'booklet-' + kind + '.pdf';
+      showPdfLinks(res.url);
+      try {
+        var a = document.createElement('a');
+        a.href = res.url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } catch (e) {}
+      return { pages: res.pages, size: res.size, name: name, url: res.url };
+    } catch (e) {
+      if (e && e.code === 'VECTOR_TOO_LARGE') showFileError(t('print.vectorLarge'));
+      else if (e && (e.code === 'VECTOR_ROTATION' || e.code === 'VECTOR_LOAD' || e.code === 'VECTOR_UNAVAILABLE' || e.code === 'VECTOR_CROPBOX')) showFileError(t('print.pdfFallback'));
+      else showFileError(t('err.generic', (e && e.message) || e));
+      return null;
+    } finally {
+      state.busy = false;
+      hideBusy();
+      renderSteps();
+    }
+  }
+
+  async function downloadAll() {
+    var kinds = ['front', 'back'];
+    if (jacketEnabled()) kinds.push('jacket');
+    for (var i = 0; i < kinds.length; i++) {
+      var res = await downloadPass(kinds[i]);
+      if (!res) break;
+      await yieldUI();
+    }
   }
 
   function bindEvents() {
@@ -1569,7 +1771,7 @@
     ['rangeFrom', 'rangeTo'].forEach(function (id) {
       $(id).addEventListener('change', onCfgChange);
     });
-    ['paperSel', 'dpiSel', 'mirrorChk', 'reverseChk', 'splitChk', 'maxSheets'].forEach(function (id) {
+    ['paperSel', 'dpiSel', 'losslessChk', 'mirrorChk', 'reverseChk', 'splitChk', 'maxSheets'].forEach(function (id) {
       $(id).addEventListener('change', onCfgChange);
     });
     $('gutterRange').addEventListener('input', function () {
@@ -1620,6 +1822,10 @@
     $('btnFront').addEventListener('click', function () { doPrint('front'); });
     $('btnBack').addEventListener('click', function () { doPrint('back'); });
     $('btnJacket').addEventListener('click', function () { doPrint('jacket'); });
+    $('dlFront').addEventListener('click', function () { downloadPass('front'); });
+    $('dlBack').addEventListener('click', function () { downloadPass('back'); });
+    $('dlJacket').addEventListener('click', function () { downloadPass('jacket'); });
+    $('dlAll').addEventListener('click', function () { downloadAll(); });
 
     $('statReset').addEventListener('click', function () {
       state.stats = { front: 0, back: 0, jacket: 0, sheets: 0 };
@@ -1682,6 +1888,10 @@
           hasCover: hasAnyCover(),
           thumbCount: Object.keys(state.thumbs).length,
           thumbError: state.thumbError,
+          largeFile: !!state.largeFile,
+          hasBytes: !!state.pdfBytes,
+          loadMode: state.loadMode,
+          lastPrintImageType: state.lastPrintImageType,
           lang: lang
         };
       },
@@ -1712,6 +1922,10 @@
         return out;
       },
       setPrintMode: setPrintMode,
+      downloadPass: downloadPass,
+      setHeavyThreshold: function (n) {
+        if (typeof n === 'number' && n > 0) HEAVY_BYTES = n;
+      },
       cleanupPrint: function () {
         if (state.printCtx) {
           state.printCtx.urls.forEach(function (u) { try { URL.revokeObjectURL(u); } catch (e) {} });

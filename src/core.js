@@ -28,7 +28,8 @@
     coverMode: 'page',
     foldLine: true,
     colorFilter: 'off',
-    xShift: 0
+    xShift: 0,
+    lossless: false
   };
 
   var COVER_MODES = ['page', 'custom', 'blank'];
@@ -79,7 +80,8 @@
       coverMode: COVER_MODES.indexOf(src.coverMode) >= 0 ? src.coverMode : DEFAULTS.coverMode,
       foldLine: boolOr(src.foldLine, DEFAULTS.foldLine),
       colorFilter: COLOR_FILTERS.indexOf(src.colorFilter) >= 0 ? src.colorFilter : DEFAULTS.colorFilter,
-      xShift: clamp(num(src.xShift, DEFAULTS.xShift), -10, 10)
+      xShift: clamp(num(src.xShift, DEFAULTS.xShift), -10, 10),
+      lossless: boolOr(src.lossless, DEFAULTS.lossless)
     };
     if (pageCount > 0) {
       cfg.rangeFrom = clamp(cfg.rangeFrom, 1, pageCount);
